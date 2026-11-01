@@ -1,0 +1,39 @@
+[
+  {
+    "id": "usr_superadmin",
+    "username": "superadmin",
+    "passwordHash": "$2b$12$DPp.07dqu6xm6iPdGDWACu9EmotJRG2CByh8OSYwxFd1kTpu.yT0K",
+    "role": "superadmin",
+    "name": "Master Super Admin",
+    "permissions": [
+      "inventory:view",
+      "inventory:create",
+      "inventory:edit",
+      "inventory:delete",
+      "pricing:edit",
+      "logs:view"
+    ],
+    "status": "active",
+    "mustChangePassword": false,
+    "createdAt": "2026-10-21T12:00:00.000Z",
+    "lastLogin": "2026-10-26T11:33:49.689Z",
+    "updatedAt": "2026-10-22T09:23:44.903Z"
+  },
+  {
+    "id": "usr_admin",
+    "username": "admin",
+    "passwordHash": "$2b$10$gVwTO55v7PgNwGVcoFsKOeX75zGMvRf5E6yUPlJdsISfFW2DUzAIG",
+    "role": "admin",
+    "name": "Exotique Staff Manager",
+    "permissions": [
+      "inventory:view",
+      "inventory:create",
+      "inventory:edit",
+      "pricing:edit"
+    ],
+    "status": "active",
+    "mustChangePassword": false,
+    "createdAt": "2026-10-21T12:00:00.000Z",
+    "lastLogin": "2026-10-22T05:03:26.432Z"
+  }
+]

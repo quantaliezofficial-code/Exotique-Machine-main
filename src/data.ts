@@ -1,0 +1,3435 @@
+import { Vehicle } from './types';
+
+export const VEHICLES: Vehicle[] = [
+  {
+    "id": "toyota-innova-crysta-2022-bronze-1",
+    "brand": "Toyota",
+    "model": "Innova Crysta",
+    "badge": "2.4 G MT (2022)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 17.25,
+    "emi": 30437,
+    "seats": 7,
+    "engine": "2.4L 4-Cylinder D-4D Diesel",
+    "power": "150 PS & 343 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 68K Kms)",
+    "images": [
+      "/uploads/1O8A3868_JPG-1792891191327-728378127.jpg",
+      "/uploads/1O8A3875_JPG-1792891191362-971428379.jpg",
+      "/uploads/1O8A3888_JPG-1792891191428-460795905.jpg",
+      "/uploads/1O8A3906_JPG-1792891191504-372801640.jpg",
+      "/uploads/1O8A3873_JPG-1792891191607-144068605.jpg",
+      "/uploads/1O8A3867_JPG-1792891191651-342909595.jpg"
+    ],
+    "colors": [
+      {
+        "name": "Bronze",
+        "hex": "#8C6239"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2022 Toyota Innova Crysta (2.4 G MT) finished in pristine Bronze. Registered under UP32 with verified 2nd ownership, driven only 68K verified kilometers. Featuring a robust 2.4L 4-Cylinder D-4D Diesel producing 150 PS & 343 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 68K Certified Kilometers",
+      "Year of Manufacture: 2022",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-08-16T12:04:54.135Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:19:51.692Z"
+  },
+  {
+    "id": "toyota-innova-crysta-2019-white-2",
+    "brand": "Toyota",
+    "model": "Innova Crysta",
+    "badge": "2.4 Z (2019)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 17.5,
+    "emi": 30878,
+    "seats": 7,
+    "engine": "2.4L 4-Cylinder D-4D Diesel",
+    "power": "150 PS & 343 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 93K Kms)",
+    "images": [
+      "/uploads/1O8A3734_JPG-1792891270331-553396639.jpg",
+      "/uploads/1O8A3808_JPG-1792891270358-968782763.jpg",
+      "/uploads/1O8A3746_JPG-1792891270413-216857226.jpg",
+      "/uploads/1O8A3739_JPG-1792891270463-181297527.jpg",
+      "/uploads/1O8A3735_JPG-1792891270563-839303828.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 Toyota Innova Crysta (2.4 Z) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 93K verified kilometers. Featuring a robust 2.4L 4-Cylinder D-4D Diesel producing 150 PS & 343 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 93K Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-08-17T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:21:10.592Z"
+  },
+  {
+    "id": "toyota-innova-crysta-2016-grey-3",
+    "brand": "Toyota",
+    "model": "Innova Crysta",
+    "badge": "2.4 Z (2016)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 13.25,
+    "emi": 23379,
+    "seats": 7,
+    "engine": "2.4L 4-Cylinder D-4D Diesel",
+    "power": "150 PS & 343 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 10K Kms)",
+    "images": [
+      "/uploads/1O8A3934_JPG-1792891359322-623721439.jpg",
+      "/uploads/1O8A3957_JPG-1792891359363-522138829.jpg",
+      "/uploads/1O8A3950_JPG-1792891359413-74393992.jpg",
+      "/uploads/1O8A3938_JPG-1792891359467-191676576.jpg"
+    ],
+    "colors": [
+      {
+        "name": "Grey",
+        "hex": "#6B7280"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 Toyota Innova Crysta (2.4 Z) finished in pristine Grey. Registered under UP32 with single 1st ownership, driven only 10K verified kilometers. Featuring a robust 2.4L 4-Cylinder D-4D Diesel producing 150 PS & 343 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 10K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-08-18T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:22:39.524Z"
+  },
+  {
+    "id": "toyota-glanza-2020-white-4",
+    "brand": "Toyota",
+    "model": "Glanza",
+    "badge": "G (2020)",
+    "type": "Pre-Owned Sedan",
+    "category": "non-premium",
+    "lifestyle": "Sedan",
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "price": 5.5,
+    "emi": 9705,
+    "seats": 5,
+    "engine": "1.2L K-Series DualJet Petrol",
+    "power": "90 PS & 113 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 1L Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2020 Toyota Glanza (G) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 1L verified kilometers. Featuring a robust 1.2L K-Series DualJet Petrol producing 90 PS & 113 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 1L Certified Kilometers",
+      "Year of Manufacture: 2020",
+      "Manual Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-08-19T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-scorpio-n-2022-white-5",
+    "brand": "Mahindra",
+    "model": "Scorpio N",
+    "badge": "Z8L 2WD 7 STR (2022)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 19.75,
+    "emi": 34848,
+    "seats": 7,
+    "engine": "2.2L mHawk Turbo Diesel",
+    "power": "175 PS & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 40K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2022 Mahindra Scorpio N (Z8L 2WD 7 STR) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 40K verified kilometers. Featuring a robust 2.2L mHawk Turbo Diesel producing 175 PS & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 40K Certified Kilometers",
+      "Year of Manufacture: 2022",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-08-20T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-scorpio-n-2023-white-6",
+    "brand": "Mahindra",
+    "model": "Scorpio N",
+    "badge": "Z8L 2WD 7 STR (2023)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 18.95,
+    "emi": 33437,
+    "seats": 7,
+    "engine": "2.2L mHawk Turbo Diesel",
+    "power": "175 PS & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 68K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Mahindra Scorpio N (Z8L 2WD 7 STR) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 68K verified kilometers. Featuring a robust 2.2L mHawk Turbo Diesel producing 175 PS & 400 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 68K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-08-21T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-scorpio-classic-2025-black-7",
+    "brand": "Mahindra",
+    "model": "Scorpio Classic",
+    "badge": "7 Str S11 (2025)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 15.75,
+    "emi": 27790,
+    "seats": 7,
+    "engine": "2.2L mHawk Gen-2 Diesel",
+    "power": "132 PS & 300 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 15K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#1C1917"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2025 Mahindra Scorpio Classic (7 Str S11) finished in pristine Black. Registered under UP32 with single 1st ownership, driven only 15K verified kilometers. Featuring a robust 2.2L mHawk Gen-2 Diesel producing 132 PS & 300 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 15K Certified Kilometers",
+      "Year of Manufacture: 2025",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-08-22T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-xuv-500-2016-white-8",
+    "brand": "Mahindra",
+    "model": "XUV 500",
+    "badge": "FWD W6 BS-4 (2016)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 7.25,
+    "emi": 12792,
+    "seats": 7,
+    "engine": "2.2L mHawk CRDe Diesel",
+    "power": "140 PS & 330 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 97K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 Mahindra XUV 500 (FWD W6 BS-4) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 97K verified kilometers. Featuring a robust 2.2L mHawk CRDe Diesel producing 140 PS & 330 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 97K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-08-23T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-thar-roxx-2025-white-9",
+    "brand": "Mahindra",
+    "model": "Thar Roxx",
+    "badge": "MX5 DT 2WD (2025)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 19.75,
+    "emi": 34848,
+    "seats": 5,
+    "engine": "2.2L mHawk Diesel (5-Door)",
+    "power": "175 PS & 370 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 17K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2025 Mahindra Thar Roxx (MX5 DT 2WD) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 17K verified kilometers. Featuring a robust 2.2L mHawk Diesel (5-Door) producing 175 PS & 370 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 17K Certified Kilometers",
+      "Year of Manufacture: 2025",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-08-24T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-thar-2022-black-10",
+    "brand": "Mahindra",
+    "model": "Thar",
+    "badge": "4X4 AT Hard Top (2022)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 17.5,
+    "emi": 30878,
+    "seats": 4,
+    "engine": "2.2L mHawk 130 CRDe",
+    "power": "130 PS & 300 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 22K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#1C1917"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2022 Mahindra Thar (4X4 AT Hard Top) finished in pristine Black. Registered under UP32 with single 1st ownership, driven only 22K verified kilometers. Featuring a robust 2.2L mHawk 130 CRDe producing 130 PS & 300 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 22K Certified Kilometers",
+      "Year of Manufacture: 2022",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-08-25T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-thar-2024-grey-11",
+    "brand": "Mahindra",
+    "model": "Thar",
+    "badge": "4*2 RWD Hard Top (2024)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 14.75,
+    "emi": 26026,
+    "seats": 4,
+    "engine": "1.5L D117 CRDe Diesel",
+    "power": "118 PS & 300 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 4K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Grey",
+        "hex": "#4B5563"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2024 Mahindra Thar (4*2 RWD Hard Top) finished in pristine Grey. Registered under UP32 with single 1st ownership, driven only 4K verified kilometers. Featuring a robust 1.5L D117 CRDe Diesel producing 118 PS & 300 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 4K Certified Kilometers",
+      "Year of Manufacture: 2024",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-08-26T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mahindra-bolero-2020-white-12",
+    "brand": "Mahindra",
+    "model": "Bolero",
+    "badge": "B4 BS6 (2020)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 6.95,
+    "emi": 12263,
+    "seats": 7,
+    "engine": "1.5L mHawk75 Diesel",
+    "power": "75 PS & 210 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 94K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2020 Mahindra Bolero (B4 BS6) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 94K verified kilometers. Featuring a robust 1.5L mHawk75 Diesel producing 75 PS & 210 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 94K Certified Kilometers",
+      "Year of Manufacture: 2020",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-08-27T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mg-hector-2023-white-13",
+    "brand": "MG",
+    "model": "Hector",
+    "badge": "3s Smart Diesel (2023)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 18.95,
+    "emi": 33437,
+    "seats": 5,
+    "engine": "2.0L Turbo Diesel",
+    "power": "170 PS & 350 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 33K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 MG Hector (3s Smart Diesel) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 33K verified kilometers. Featuring a robust 2.0L Turbo Diesel producing 170 PS & 350 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 33K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-08-28T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mg-hector-plus-2024-black-14",
+    "brand": "MG",
+    "model": "Hector Plus",
+    "badge": "Sharp Pro Automatic (2024)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "price": 19.95,
+    "emi": 35201,
+    "seats": 6,
+    "engine": "1.5L Turbocharged Intercooled Petrol",
+    "power": "143 PS & 250 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 15K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2024 MG Hector Plus (Sharp Pro Automatic) finished in pristine Black. Registered under UP32 with single 1st ownership, driven only 15K verified kilometers. Featuring a robust 1.5L Turbocharged Intercooled Petrol producing 143 PS & 250 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 15K Certified Kilometers",
+      "Year of Manufacture: 2024",
+      "Automatic Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-08-29T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "honda-city-2014-white-15",
+    "brand": "Honda",
+    "model": "City",
+    "badge": "ZX i-DTEC (2014)",
+    "type": "Pre-Owned Sedan",
+    "category": "non-premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 4.75,
+    "emi": 8381,
+    "seats": 5,
+    "engine": "1.5L i-DTEC DOHC Diesel",
+    "power": "100 PS & 200 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 44K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2014 Honda City (ZX i-DTEC) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 44K verified kilometers. Featuring a robust 1.5L i-DTEC DOHC Diesel producing 100 PS & 200 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 44K Certified Kilometers",
+      "Year of Manufacture: 2014",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-08-30T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "honda-city-2018-silver-16",
+    "brand": "Honda",
+    "model": "City",
+    "badge": "ZX i-VTEC Sunroof (2018)",
+    "type": "Pre-Owned Sedan",
+    "category": "non-premium",
+    "lifestyle": "Sedan",
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "price": 6.75,
+    "emi": 11910,
+    "seats": 5,
+    "engine": "1.5L i-VTEC SOHC Petrol",
+    "power": "119 PS & 145 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 38K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Silver",
+        "hex": "#D1D5DB"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2018 Honda City (ZX i-VTEC Sunroof) finished in pristine Silver. Registered under UP32 with single 1st ownership, driven only 38K verified kilometers. Featuring a robust 1.5L i-VTEC SOHC Petrol producing 119 PS & 145 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 38K Certified Kilometers",
+      "Year of Manufacture: 2018",
+      "Manual Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-08-31T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "honda-elevate-2024-white-17",
+    "brand": "Honda",
+    "model": "Elevate",
+    "badge": "ZX CVT Flagship (2024)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "price": 13.25,
+    "emi": 23379,
+    "seats": 5,
+    "engine": "1.5L i-VTEC DOHC with VTC",
+    "power": "121 PS & 145 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 29K Kms)",
+    "images": [
+      "/uploads/1O8A2642_JPG-1792890601075-381505309.jpg",
+      "/uploads/1O8A2726_JPG-1792890601117-309032782.jpg",
+      "/uploads/1O8A2658_JPG-1792890601163-368578606.jpg",
+      "/uploads/1O8A2653_JPG-1792890601233-804221733.jpg",
+      "/uploads/1O8A2643_JPG-1792890601282-816309603.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2024 Honda Elevate (ZX CVT Flagship) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 29K verified kilometers. Featuring a robust 1.5L i-VTEC DOHC with VTC producing 121 PS & 145 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 29K Certified Kilometers",
+      "Year of Manufacture: 2024",
+      "Automatic Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-01T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:10:01.427Z"
+  },
+  {
+    "id": "kia-seltos-2025-white-18",
+    "brand": "Kia",
+    "model": "Seltos",
+    "badge": "GTX Plus 6AT (2025)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 19.75,
+    "emi": 34848,
+    "seats": 5,
+    "engine": "1.5L CRDi VGT Diesel",
+    "power": "116 PS & 250 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 27K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2025 Kia Seltos (GTX Plus 6AT) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 27K verified kilometers. Featuring a robust 1.5L CRDi VGT Diesel producing 116 PS & 250 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 27K Certified Kilometers",
+      "Year of Manufacture: 2025",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-02T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "maruti-suzuki-brezza-2022-white-19",
+    "brand": "Maruti Suzuki",
+    "model": "Brezza",
+    "badge": "ZXi Smart Hybrid AT (2022)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "price": 9.95,
+    "emi": 17556,
+    "seats": 5,
+    "engine": "1.5L K15C DualJet Smart Hybrid",
+    "power": "103 PS & 137 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 31K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2022 Maruti Suzuki Brezza (ZXi Smart Hybrid AT) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 31K verified kilometers. Featuring a robust 1.5L K15C DualJet Smart Hybrid producing 103 PS & 137 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 31K Certified Kilometers",
+      "Year of Manufacture: 2022",
+      "Automatic Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-03T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "maruti-suzuki-fronx-2025-white-20",
+    "brand": "Maruti Suzuki",
+    "model": "Fronx",
+    "badge": "Turbo Zeta AT Hybrid (2025)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Hybrid",
+    "transmission": "Automatic",
+    "price": 12.5,
+    "emi": 22056,
+    "seats": 5,
+    "engine": "1.0L Boosterjet Turbo Petrol Hybrid",
+    "power": "100 PS & 147.6 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 2.9K Kms)",
+    "images": [
+      "/uploads/1O8A3471_JPG-1792890959390-228762142.jpg",
+      "/uploads/1O8A3502_JPG-1792890959419-694962108.jpg",
+      "/uploads/1O8A3487_JPG-1792890959460-596729617.jpg",
+      "/uploads/1O8A3475_JPG-1792890959485-687971183.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2025 Maruti Suzuki Fronx (Turbo Zeta AT Hybrid) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 2.9K verified kilometers. Featuring a robust 1.0L Boosterjet Turbo Petrol Hybrid producing 100 PS & 147.6 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 2.9K Certified Kilometers",
+      "Year of Manufacture: 2025",
+      "Automatic Transmission with Hybrid Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-04T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:15:59.520Z"
+  },
+  {
+    "id": "tata-motors-safari-2021-blue-21",
+    "brand": "Tata Motors",
+    "model": "Safari",
+    "badge": "XZA+ 2.0L Kryotec BSVI (2021)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 13.95,
+    "emi": 24614,
+    "seats": 7,
+    "engine": "2.0L Kryotec Turbocharged Diesel",
+    "power": "170 PS & 350 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 70K Kms)",
+    "images": [
+      "/uploads/1O8A1791_JPG-1792890447273-927968941.jpg",
+      "/uploads/1O8A1824_JPG-1792890447311-231728989.jpg",
+      "/uploads/1O8A1804_JPG-1792890447354-969188950.jpg",
+      "/uploads/1O8A1794_JPG-1792890447386-555844820.jpg"
+    ],
+    "colors": [
+      {
+        "name": "Blue",
+        "hex": "#1E3A8A"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2021 Tata Motors Safari (XZA+ 2.0L Kryotec BSVI) finished in pristine Blue. Registered under UP32 with verified 2nd ownership, driven only 70K verified kilometers. Featuring a robust 2.0L Kryotec Turbocharged Diesel producing 170 PS & 350 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 70K Certified Kilometers",
+      "Year of Manufacture: 2021",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-05T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:07:27.435Z"
+  },
+  {
+    "id": "hyundai-creta-2016-white-22",
+    "brand": "Hyundai",
+    "model": "Creta",
+    "badge": "1.6 CRDi SX+ AT (2016)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 7.25,
+    "emi": 12792,
+    "seats": 5,
+    "engine": "1.6L U2 CRDi Diesel",
+    "power": "128 PS & 260 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 1L Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 Hyundai Creta (1.6 CRDi SX+ AT) finished in pristine White. Registered under UP32 with verified 2nd ownership, driven only 1L verified kilometers. Featuring a robust 1.6L U2 CRDi Diesel producing 128 PS & 260 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 1L Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-06T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "hyundai-creta-2021-white-23",
+    "brand": "Hyundai",
+    "model": "Creta",
+    "badge": "1.5 CRDi AT SX Executive (2021)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 9.95,
+    "emi": 17556,
+    "seats": 5,
+    "engine": "1.5L U2 CRDi Diesel",
+    "power": "115 PS & 250 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 90K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2021 Hyundai Creta (1.5 CRDi AT SX Executive) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 90K verified kilometers. Featuring a robust 1.5L U2 CRDi Diesel producing 115 PS & 250 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 90K Certified Kilometers",
+      "Year of Manufacture: 2021",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-07T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "hyundai-aura-2023-grey-24",
+    "brand": "Hyundai",
+    "model": "Aura",
+    "badge": "1.2 MT CNG SX (2023)",
+    "type": "Pre-Owned CNG",
+    "category": "non-premium",
+    "lifestyle": "CNG",
+    "fuel": "CNG",
+    "transmission": "Manual",
+    "price": 6.75,
+    "emi": 11910,
+    "seats": 5,
+    "engine": "1.2L Bi-Fuel Kappa Petrol+CNG",
+    "power": "69 PS & 95 Nm Torque",
+    "mileage": "26.6 km/pl (Odo: 65K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Grey",
+        "hex": "#4B5563"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Hyundai Aura (1.2 MT CNG SX) finished in pristine Grey. Registered under UP32 with single 1st ownership, driven only 65K verified kilometers. Featuring a robust 1.2L Bi-Fuel Kappa Petrol+CNG producing 69 PS & 95 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 65K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Manual Transmission with CNG Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-08T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "jeep-compass-2021-green-25",
+    "brand": "Jeep",
+    "model": "Compass",
+    "badge": "4*4 Model (O) Automatic (2021)",
+    "type": "Pre-Owned SUV",
+    "category": "non-premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 23.75,
+    "emi": 41906,
+    "seats": 5,
+    "engine": "2.0L Multijet II Turbo Diesel 4x4",
+    "power": "170 PS & 350 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 56K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Green",
+        "hex": "#14532D"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2021 Jeep Compass (4*4 Model (O) Automatic) finished in pristine Green. Registered under UP32 with single 1st ownership, driven only 56K verified kilometers. Featuring a robust 2.0L Multijet II Turbo Diesel 4x4 producing 170 PS & 350 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 56K Certified Kilometers",
+      "Year of Manufacture: 2021",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-09T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "audi-a3-2020-white-26",
+    "brand": "Audi",
+    "model": "A3",
+    "badge": "35 TDI Premium Plus (2020)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 21.5,
+    "emi": 37936,
+    "seats": 5,
+    "engine": "2.0L TDI 4-Cylinder Turbo Diesel",
+    "power": "143 bhp & 320 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 70K Kms)",
+    "images": [
+      "/uploads/1O8A2799_JPG-1792888318571-705636993.jpg",
+      "/uploads/1O8A2794_JPG-1792888318716-939571629.jpg",
+      "/uploads/1O8A2789_JPG-1792888318859-340898880.jpg",
+      "/uploads/1O8A2781_JPG-1792888318982-677060132.jpg",
+      "/uploads/1O8A2780_JPG-1792888319123-796351694.jpg",
+      "/uploads/1O8A2779_JPG-1792888319256-506118763.jpg",
+      "/uploads/1O8A3156_JPG-1792888319339-322327387.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2020 Audi A3 (35 TDI Premium Plus) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 70K verified kilometers. Featuring a robust 2.0L TDI 4-Cylinder Turbo Diesel producing 143 bhp & 320 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 70K Certified Kilometers",
+      "Year of Manufacture: 2020",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-10T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T00:31:59.569Z"
+  },
+  {
+    "id": "audi-a4-2013-white-27",
+    "brand": "Audi",
+    "model": "A4",
+    "badge": "2.0 TDI Sunroof (2013)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 9.95,
+    "emi": 17556,
+    "seats": 5,
+    "engine": "2.0L TDI Turbocharged Engine",
+    "power": "177 bhp & 380 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 1.12L Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2013 Audi A4 (2.0 TDI Sunroof) finished in pristine White. Registered under UP51 with verified 2nd ownership, driven only 1.12L verified kilometers. Featuring a robust 2.0L TDI Turbocharged Engine producing 177 bhp & 380 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP51",
+      "Ownership: 2nd Owner",
+      "Driven 1.12L Certified Kilometers",
+      "Year of Manufacture: 2013",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-11T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "audi-a6-2018-white-28",
+    "brand": "Audi",
+    "model": "A6",
+    "badge": "35 TDI Technology Pack (2018)",
+    "type": "Certified Luxury Luxury",
+    "category": "premium",
+    "lifestyle": "Luxury",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 24.75,
+    "emi": 43670,
+    "seats": 5,
+    "engine": "2.0L TDI with S-Tronic Transmission",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 54K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2018 Audi A6 (35 TDI Technology Pack) finished in pristine White. Registered under UP70 with single 1st ownership, driven only 54K verified kilometers. Featuring a robust 2.0L TDI with S-Tronic Transmission producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP70",
+      "Ownership: Single 1st Owner",
+      "Driven 54K Certified Kilometers",
+      "Year of Manufacture: 2018",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-12T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "audi-a6-2016-white-29",
+    "brand": "Audi",
+    "model": "A6",
+    "badge": "Matrix Edition (2016)",
+    "type": "Certified Luxury Luxury",
+    "category": "premium",
+    "lifestyle": "Luxury",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 18.75,
+    "emi": 33084,
+    "seats": 5,
+    "engine": "2.0L Turbo Diesel Matrix LED",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 55K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 Audi A6 (Matrix Edition) finished in pristine White. Registered under UP80 with verified 2nd ownership, driven only 55K verified kilometers. Featuring a robust 2.0L Turbo Diesel Matrix LED producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP80",
+      "Ownership: 2nd Owner",
+      "Driven 55K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-13T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-x1-2019-white-30",
+    "brand": "BMW",
+    "model": "X1",
+    "badge": "sDrive20d xLine (2019)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 20.5,
+    "emi": 36171,
+    "seats": 5,
+    "engine": "2.0L BMW TwinPower Turbo Diesel",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 65K Kms)",
+    "images": [
+      "/uploads/1O8A3273_JPG-1792888527857-966383162.jpg",
+      "/uploads/1O8A3336_JPG-1792888527965-392046534.jpg",
+      "/uploads/1O8A3295_JPG-1792888528108-218062120.jpg",
+      "/uploads/1O8A3276_JPG-1792888528221-951199487.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 BMW X1 (sDrive20d xLine) finished in pristine White. Registered under UP78 with single 1st ownership, driven only 65K verified kilometers. Featuring a robust 2.0L BMW TwinPower Turbo Diesel producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP78",
+      "Ownership: Single 1st Owner",
+      "Driven 65K Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-14T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T00:35:28.282Z"
+  },
+  {
+    "id": "bmw-x1-2017-white-31",
+    "brand": "BMW",
+    "model": "X1",
+    "badge": "sDrive Expedition (2017)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 18.25,
+    "emi": 32201,
+    "seats": 5,
+    "engine": "2.0L BMW TwinPower Turbo Diesel",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 70K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2017 BMW X1 (sDrive Expedition) finished in pristine White. Registered under UP70 with verified 2nd ownership, driven only 70K verified kilometers. Featuring a robust 2.0L BMW TwinPower Turbo Diesel producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP70",
+      "Ownership: 2nd Owner",
+      "Driven 70K Certified Kilometers",
+      "Year of Manufacture: 2017",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-15T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-x5-2024-white-32",
+    "brand": "BMW",
+    "model": "X5",
+    "badge": "xDrive30d LCI M Sport (2024)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 89.5,
+    "emi": 157919,
+    "seats": 5,
+    "engine": "3.0L BMW TwinPower Turbo Inline-6",
+    "power": "286 bhp & 650 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 37K Kms)",
+    "images": [
+      "/uploads/DSC04220-1792895012921-827501317.jpg",
+      "/uploads/DSC04207-1792895012962-841194963.jpg",
+      "/uploads/DSC04218-1792895012990-35798675.jpg",
+      "/uploads/DSC04238-1792895013011-242786393.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2024 BMW X5 (xDrive30d LCI M Sport) finished in pristine White. Registered under UP78 with single 1st ownership, driven only 37K verified kilometers. Featuring a robust 3.0L BMW TwinPower Turbo Inline-6 producing 286 bhp & 650 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP78",
+      "Ownership: Single 1st Owner",
+      "Driven 37K Certified Kilometers",
+      "Year of Manufacture: 2024",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-16T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T02:23:33.062Z"
+  },
+  {
+    "id": "bmw-x6-2013-white-33",
+    "brand": "BMW",
+    "model": "X6",
+    "badge": "xDrive40d M Sport (2013)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 20.5,
+    "emi": 36171,
+    "seats": 5,
+    "engine": "3.0L TwinPower Turbo Inline-6 Diesel",
+    "power": "306 bhp & 600 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 89K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2013 BMW X6 (xDrive40d M Sport) finished in pristine White. Registered under UP32 with verified 2nd ownership, driven only 89K verified kilometers. Featuring a robust 3.0L TwinPower Turbo Inline-6 Diesel producing 306 bhp & 600 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 89K Certified Kilometers",
+      "Year of Manufacture: 2013",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-17T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-3-series-gt-2016-brown-34",
+    "brand": "BMW",
+    "model": "3 Series GT",
+    "badge": "320d Gran Turismo Luxury (2016)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 16.75,
+    "emi": 29555,
+    "seats": 5,
+    "engine": "2.0L TwinPower Turbo Diesel",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 55K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Brown",
+        "hex": "#78350F"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 BMW 3 Series GT (320d Gran Turismo Luxury) finished in pristine Brown. Registered under UP78 with verified 2nd ownership, driven only 55K verified kilometers. Featuring a robust 2.0L TwinPower Turbo Diesel producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP78",
+      "Ownership: 2nd Owner",
+      "Driven 55K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-18T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-5-series-2016-brown-35",
+    "brand": "BMW",
+    "model": "5 Series",
+    "badge": "520d Luxury Line (2016)",
+    "type": "Certified Luxury Luxury",
+    "category": "premium",
+    "lifestyle": "Luxury",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 18.75,
+    "emi": 33084,
+    "seats": 5,
+    "engine": "2.0L TwinPower Turbo Diesel",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 55K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Brown",
+        "hex": "#78350F"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 BMW 5 Series (520d Luxury Line) finished in pristine Brown. Registered under UP32 with verified 2nd ownership, driven only 55K verified kilometers. Featuring a robust 2.0L TwinPower Turbo Diesel producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 55K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-19T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-5-series-2023-black-36",
+    "brand": "BMW",
+    "model": "5 Series",
+    "badge": "530d LCI M Sport / Luxury Line (2023)",
+    "type": "Certified Luxury Luxury",
+    "category": "premium",
+    "lifestyle": "Luxury",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 56.95,
+    "emi": 100486,
+    "seats": 5,
+    "engine": "3.0L 6-Cylinder Turbo Diesel",
+    "power": "265 bhp & 620 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 22K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#0F172A"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 BMW 5 Series (530d LCI M Sport / Luxury Line) finished in pristine Black. Registered under UP78 with single 1st ownership, driven only 22K verified kilometers. Featuring a robust 3.0L 6-Cylinder Turbo Diesel producing 265 bhp & 620 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP78",
+      "Ownership: Single 1st Owner",
+      "Driven 22K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-20T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-7-series-2018-black-37",
+    "brand": "BMW",
+    "model": "7 Series",
+    "badge": "730 Ld DPE Signature (2018)",
+    "type": "Certified Luxury Luxury",
+    "category": "premium",
+    "lifestyle": "Luxury",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 56.95,
+    "emi": 100486,
+    "seats": 4,
+    "engine": "3.0L BMW TwinPower Turbo Diesel",
+    "power": "265 bhp & 620 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 38K Kms)",
+    "images": [
+      "/vehicles/bmw-730ld/front.jpg",
+      "/vehicles/bmw-730ld/cockpit.jpg",
+      "/vehicles/bmw-730ld/interior.jpg",
+      "/vehicles/bmw-730ld/rear.jpg"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#000000"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2018 BMW 7 Series (730 Ld DPE Signature) finished in pristine Black. Registered under UP78 with single 1st ownership, driven only 38K verified kilometers. Featuring a robust 3.0L BMW TwinPower Turbo Diesel producing 265 bhp & 620 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP78",
+      "Ownership: Single 1st Owner",
+      "Driven 38K Certified Kilometers",
+      "Year of Manufacture: 2018",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-21T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "bmw-mini-cooper-2019-white-38",
+    "brand": "BMW",
+    "model": "Mini Cooper",
+    "badge": "Countryman S (2019)",
+    "type": "Certified Luxury Luxury",
+    "category": "premium",
+    "lifestyle": "Luxury",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 34.75,
+    "emi": 61315,
+    "seats": 5,
+    "engine": "2.0L 4-Cylinder TwinPower Turbo",
+    "power": "192 bhp & 280 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 6K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 BMW Mini Cooper (Countryman S) finished in pristine White. Registered under UP78 with single 1st ownership, driven only 6K verified kilometers. Featuring a robust 2.0L 4-Cylinder TwinPower Turbo producing 192 bhp & 280 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP78",
+      "Ownership: Single 1st Owner",
+      "Driven 6K Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-22T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-c-class-2011-white-39",
+    "brand": "Mercedes-Benz",
+    "model": "C-Class",
+    "badge": "C 250 CDI Avantgarde (2011)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 7.95,
+    "emi": 14027,
+    "seats": 5,
+    "engine": "2.1L In-line 4 Twin-Turbo Diesel",
+    "power": "204 bhp & 500 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 91K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2011 Mercedes-Benz C-Class (C 250 CDI Avantgarde) finished in pristine White. Registered under UP32 with verified 2nd ownership, driven only 91K verified kilometers. Featuring a robust 2.1L In-line 4 Twin-Turbo Diesel producing 204 bhp & 500 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 91K Certified Kilometers",
+      "Year of Manufacture: 2011",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-23T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-c-class-2019-white-40",
+    "brand": "Mercedes-Benz",
+    "model": "C-Class",
+    "badge": "C 220d Progressive (2019)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 26.75,
+    "emi": 47199,
+    "seats": 5,
+    "engine": "2.0L 4-Cylinder OM654 Turbo Diesel",
+    "power": "194 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 55K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 Mercedes-Benz C-Class (C 220d Progressive) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 55K verified kilometers. Featuring a robust 2.0L 4-Cylinder OM654 Turbo Diesel producing 194 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 55K Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-24T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-cla-2016-red-41",
+    "brand": "Mercedes-Benz",
+    "model": "CLA",
+    "badge": "200d Sport (2016)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 17.5,
+    "emi": 30878,
+    "seats": 5,
+    "engine": "2.1L 4-Cylinder Turbo Diesel",
+    "power": "136 bhp & 300 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 60K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#DC2626"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 Mercedes-Benz CLA (200d Sport) finished in pristine Red. Registered under UP32 with single 1st ownership, driven only 60K verified kilometers. Featuring a robust 2.1L 4-Cylinder Turbo Diesel producing 136 bhp & 300 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 60K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-25T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-cla-2018-white-42",
+    "brand": "Mercedes-Benz",
+    "model": "CLA",
+    "badge": "200d Sport Panoramic (2018)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 23.25,
+    "emi": 41024,
+    "seats": 5,
+    "engine": "2.1L Turbo Diesel with 7G-DCT",
+    "power": "136 bhp & 300 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 36K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2018 Mercedes-Benz CLA (200d Sport Panoramic) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 36K verified kilometers. Featuring a robust 2.1L Turbo Diesel with 7G-DCT producing 136 bhp & 300 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 36K Certified Kilometers",
+      "Year of Manufacture: 2018",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-26T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-cla-2018-white-43",
+    "brand": "Mercedes-Benz",
+    "model": "CLA",
+    "badge": "200d Urban Sport (2018)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 22.75,
+    "emi": 40141,
+    "seats": 5,
+    "engine": "2.1L Turbo Diesel with 7G-DCT",
+    "power": "136 bhp & 300 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 56K Kms)",
+    "images": [
+      "/uploads/1O8A3190_JPG-1792890803052-217088618.jpg",
+      "/uploads/1O8A3192_JPG-1792890803106-692189835.jpg",
+      "/uploads/1O8A3209_JPG-1792890803165-741363553.jpg",
+      "/uploads/1O8A3195_JPG-1792890803274-925116167.jpg",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2018 Mercedes-Benz CLA (200d Urban Sport) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 56K verified kilometers. Featuring a robust 2.1L Turbo Diesel with 7G-DCT producing 136 bhp & 300 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 56K Certified Kilometers",
+      "Year of Manufacture: 2018",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-09-27T12:04:54.265Z",
+    "isRecent": false,
+    "updatedAt": "2026-10-25T01:13:23.345Z"
+  },
+  {
+    "id": "mercedes-benz-gla-2018-red-44",
+    "brand": "Mercedes-Benz",
+    "model": "GLA",
+    "badge": "220d CDI 4MATIC Style (2018)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 21.75,
+    "emi": 38377,
+    "seats": 5,
+    "engine": "2.1L 4-Cylinder Diesel 4MATIC",
+    "power": "170 bhp & 350 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 65K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#B91C1C"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2018 Mercedes-Benz GLA (220d CDI 4MATIC Style) finished in pristine Red. Registered under UP15 with verified 2nd ownership, driven only 65K verified kilometers. Featuring a robust 2.1L 4-Cylinder Diesel 4MATIC producing 170 bhp & 350 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP15",
+      "Ownership: 2nd Owner",
+      "Driven 65K Certified Kilometers",
+      "Year of Manufacture: 2018",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-09-28T12:04:54.265Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-gle-2026-white-45",
+    "brand": "Mercedes-Benz",
+    "model": "GLE",
+    "badge": "GLE 450d 4MATIC AMG Line (2026)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 96.95,
+    "emi": 171064,
+    "seats": 5,
+    "engine": "3.0L OM656M Inline-6 Turbo Diesel 48V",
+    "power": "367 bhp & 750 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 22K Kms)",
+    "images": [
+      "/vehicles/mercedes-gle450/front.jpg",
+      "/vehicles/mercedes-gle450/poster.jpg",
+      "/vehicles/mercedes-gle450/detail.jpg",
+      "/vehicles/mercedes-gle450/angle.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2026 Mercedes-Benz GLE (GLE 450d 4MATIC AMG Line) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 22K verified kilometers. Featuring a robust 3.0L OM656M Inline-6 Turbo Diesel 48V producing 367 bhp & 750 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 22K Certified Kilometers",
+      "Year of Manufacture: 2026",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-09-29T12:04:54.266Z",
+    "isRecent": false
+  },
+  {
+    "id": "mercedes-benz-gls-2021-white-46",
+    "brand": "Mercedes-Benz",
+    "model": "GLS",
+    "badge": "GLS 400d 4MATIC Luxury (2021)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 77.5,
+    "emi": 136746,
+    "seats": 7,
+    "engine": "2.9L OM656 Inline-6 Twin Turbo Diesel",
+    "power": "330 bhp & 700 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 97K Kms)",
+    "images": [
+      "/vehicles/mercedes-gls400d/front.jpg",
+      "/vehicles/mercedes-gls400d/poster.jpg",
+      "/vehicles/mercedes-gls400d/detail.jpg",
+      "/vehicles/mercedes-gls400d/angle.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2021 Mercedes-Benz GLS (GLS 400d 4MATIC Luxury) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 97K verified kilometers. Featuring a robust 2.9L OM656 Inline-6 Twin Turbo Diesel producing 330 bhp & 700 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 97K Certified Kilometers",
+      "Year of Manufacture: 2021",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-09-30T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "mercedes-benz-gls-2019-white-47",
+    "brand": "Mercedes-Benz",
+    "model": "GLS",
+    "badge": "GLS 350d Grand Edition (2019)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 47.95,
+    "emi": 84606,
+    "seats": 7,
+    "engine": "3.0L V6 Turbo Diesel 4MATIC",
+    "power": "258 bhp & 620 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 1.45L Kms)",
+    "images": [
+      "/vehicles/mercedes-gls400d/front.jpg",
+      "/vehicles/mercedes-gls400d/poster.jpg",
+      "/vehicles/mercedes-gls400d/detail.jpg",
+      "/vehicles/mercedes-gls400d/angle.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 Mercedes-Benz GLS (GLS 350d Grand Edition) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 1.45L verified kilometers. Featuring a robust 3.0L V6 Turbo Diesel 4MATIC producing 258 bhp & 620 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 1.45L Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-10-01T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "mercedes-benz-gl-class-2014-black-48",
+    "brand": "Mercedes-Benz",
+    "model": "GL-Class",
+    "badge": "GL 350 CDI 4MATIC Executive (2014)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 22.5,
+    "emi": 39700,
+    "seats": 7,
+    "engine": "3.0L V6 BlueTEC Turbo Diesel",
+    "power": "258 bhp & 620 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 82K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#1C1917"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2014 Mercedes-Benz GL-Class (GL 350 CDI 4MATIC Executive) finished in pristine Black. Registered under OD14 with 3rd ownership, driven only 82K verified kilometers. Featuring a robust 3.0L V6 BlueTEC Turbo Diesel producing 258 bhp & 620 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: OD14",
+      "Ownership: 3rd Owner",
+      "Driven 82K Certified Kilometers",
+      "Year of Manufacture: 2014",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-10-02T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "mercedes-benz-glb-2023-white-49",
+    "brand": "Mercedes-Benz",
+    "model": "GLB",
+    "badge": "GLB 220d 4MATIC 7-Seater (2023)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 49.5,
+    "emi": 87341,
+    "seats": 7,
+    "engine": "2.0L 4-Cylinder OM654 Turbo Diesel",
+    "power": "190 bhp & 400 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 43K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Mercedes-Benz GLB (GLB 220d 4MATIC 7-Seater) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 43K verified kilometers. Featuring a robust 2.0L 4-Cylinder OM654 Turbo Diesel producing 190 bhp & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 43K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-10-03T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "volvo-xc60-2020-white-50",
+    "brand": "Volvo",
+    "model": "XC60",
+    "badge": "D5 Inscription AWD (2020)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 38.75,
+    "emi": 68373,
+    "seats": 5,
+    "engine": "2.0L Twin-Turbo Diesel PowerPulse AWD",
+    "power": "235 bhp & 480 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 21K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2020 Volvo XC60 (D5 Inscription AWD) finished in pristine White. Registered under UP65 with single 1st ownership, driven only 21K verified kilometers. Featuring a robust 2.0L Twin-Turbo Diesel PowerPulse AWD producing 235 bhp & 480 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP65",
+      "Ownership: Single 1st Owner",
+      "Driven 21K Certified Kilometers",
+      "Year of Manufacture: 2020",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-10-04T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "volvo-xc90-2019-white-51",
+    "brand": "Volvo",
+    "model": "XC90",
+    "badge": "D5 Inscription 7-Seater (2019)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 42.5,
+    "emi": 74990,
+    "seats": 7,
+    "engine": "2.0L Twin-Turbo Diesel PowerPulse AWD",
+    "power": "235 bhp & 480 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 52K Kms)",
+    "images": [
+      "/uploads/1O8A2473_JPG-1792888826798-912125552.jpg",
+      "/uploads/1O8A2463_JPG-1792888826947-737251637.jpg",
+      "/uploads/1O8A2459_JPG-1792888827055-245967677.jpg",
+      "/uploads/1O8A2439_JPG-1792888827157-574349173.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 Volvo XC90 (D5 Inscription 7-Seater) finished in pristine White. Registered under UP14 with single 1st ownership, driven only 52K verified kilometers. Featuring a robust 2.0L Twin-Turbo Diesel PowerPulse AWD producing 235 bhp & 480 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP14",
+      "Ownership: Single 1st Owner",
+      "Driven 52K Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-10-05T12:04:54.266Z",
+    "isRecent": true,
+    "updatedAt": "2026-10-25T00:40:27.270Z"
+  },
+  {
+    "id": "volvo-xc90-2019-silver-metallic-52",
+    "brand": "Volvo",
+    "model": "XC90",
+    "badge": "D5 Momentum Silver Metallic (2019)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 43.5,
+    "emi": 76754,
+    "seats": 7,
+    "engine": "2.0L Twin-Turbo Diesel PowerPulse AWD",
+    "power": "235 bhp & 480 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 63K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Silver Metallic",
+        "hex": "#94A3B8"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2019 Volvo XC90 (D5 Momentum Silver Metallic) finished in pristine Silver Metallic. Registered under UP32 with single 1st ownership, driven only 63K verified kilometers. Featuring a robust 2.0L Twin-Turbo Diesel PowerPulse AWD producing 235 bhp & 480 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 63K Certified Kilometers",
+      "Year of Manufacture: 2019",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-10-06T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "land-rover-discovery-sport-2021-black-53",
+    "brand": "Land Rover",
+    "model": "Discovery Sport",
+    "badge": "R-Dynamic SE 4x4 (2021)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 41.75,
+    "emi": 73666,
+    "seats": 7,
+    "engine": "2.0L Ingenium Turbo Diesel AWD",
+    "power": "177 bhp & 430 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 42K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#0F172A"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2021 Land Rover Discovery Sport (R-Dynamic SE 4x4) finished in pristine Black. Registered under UP32 with single 1st ownership, driven only 42K verified kilometers. Featuring a robust 2.0L Ingenium Turbo Diesel AWD producing 177 bhp & 430 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 42K Certified Kilometers",
+      "Year of Manufacture: 2021",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-10-07T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "land-rover-range-rover-evoque-2020-white-54",
+    "brand": "Land Rover",
+    "model": "Range Rover Evoque",
+    "badge": "RD-EY.SE Luxury (2020)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 36.95,
+    "emi": 65197,
+    "seats": 5,
+    "engine": "2.0L Ingenium 4-Cylinder Turbo Diesel",
+    "power": "177 bhp & 430 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 89K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2020 Land Rover Range Rover Evoque (RD-EY.SE Luxury) finished in pristine White. Registered under UP32 with verified 2nd ownership, driven only 89K verified kilometers. Featuring a robust 2.0L Ingenium 4-Cylinder Turbo Diesel producing 177 bhp & 430 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 89K Certified Kilometers",
+      "Year of Manufacture: 2020",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-10-08T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "land-rover-defender-110-2024-white-55",
+    "brand": "Land Rover",
+    "model": "Defender 110",
+    "badge": "HSE Petrol 4x4 (2024)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "price": 98.5,
+    "emi": 173799,
+    "seats": 5,
+    "engine": "2.0L i4 Turbocharged Petrol 4WD",
+    "power": "300 PS & 400 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 97K Kms)",
+    "images": [
+      "/vehicles/land-rover-defender/front.jpg",
+      "/vehicles/land-rover-defender/poster.jpg",
+      "/vehicles/land-rover-defender/detail.jpg",
+      "/vehicles/land-rover-defender/angle.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2024 Land Rover Defender 110 (HSE Petrol 4x4) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 97K verified kilometers. Featuring a robust 2.0L i4 Turbocharged Petrol 4WD producing 300 PS & 400 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 97K Certified Kilometers",
+      "Year of Manufacture: 2024",
+      "Automatic Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-10-09T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "jaguar-f-pace-2023-white-56",
+    "brand": "Jaguar",
+    "model": "F-Pace",
+    "badge": "2.0 R-Dynamic Prestige (2023)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 59.5,
+    "emi": 104985,
+    "seats": 5,
+    "engine": "2.0L Ingenium Turbocharged Diesel AWD",
+    "power": "201 bhp & 430 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 26K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Jaguar F-Pace (2.0 R-Dynamic Prestige) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 26K verified kilometers. Featuring a robust 2.0L Ingenium Turbocharged Diesel AWD producing 201 bhp & 430 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 26K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-10-10T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "toyota-fortuner-2017-white-57",
+    "brand": "Toyota",
+    "model": "Fortuner",
+    "badge": "4*4 MT Diesel (2017)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 21.75,
+    "emi": 38377,
+    "seats": 7,
+    "engine": "2.8L 4-Cylinder D-4D Diesel 4x4",
+    "power": "177 PS & 420 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 21K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2017 Toyota Fortuner (4*4 MT Diesel) finished in pristine White. Registered under UP32 with verified 2nd ownership, driven only 21K verified kilometers. Featuring a robust 2.8L 4-Cylinder D-4D Diesel 4x4 producing 177 PS & 420 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 21K Certified Kilometers",
+      "Year of Manufacture: 2017",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-10-11T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "toyota-fortuner-2016-silver-58",
+    "brand": "Toyota",
+    "model": "Fortuner",
+    "badge": "3.0L 2WD AT Classic (2016)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 18.75,
+    "emi": 33084,
+    "seats": 7,
+    "engine": "3.0L D-4D Common Rail Diesel",
+    "power": "171 PS & 360 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 96K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Silver",
+        "hex": "#9CA3AF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2016 Toyota Fortuner (3.0L 2WD AT Classic) finished in pristine Silver. Registered under UP32 with verified 2nd ownership, driven only 96K verified kilometers. Featuring a robust 3.0L D-4D Common Rail Diesel producing 171 PS & 360 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 96K Certified Kilometers",
+      "Year of Manufacture: 2016",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-10-12T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "toyota-fortuner-2023-white-59",
+    "brand": "Toyota",
+    "model": "Fortuner",
+    "badge": "4*2 MT Luxury (2023)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 34.5,
+    "emi": 60874,
+    "seats": 7,
+    "engine": "2.8L 4-Cylinder D-4D Diesel",
+    "power": "204 PS & 420 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 80K Kms)",
+    "images": [
+      "/uploads/1O8A2179_JPG-1792661673910-125869344.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Toyota Fortuner (4*2 MT Luxury) finished in pristine White. Registered under UP32 with verified 2nd ownership, driven only 80K verified kilometers. Featuring a robust 2.8L 4-Cylinder D-4D Diesel producing 204 PS & 420 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 2nd Owner",
+      "Driven 80K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-10-13T12:04:54.266Z",
+    "isRecent": true,
+    "updatedAt": "2026-10-22T09:34:34.037Z"
+  },
+  {
+    "id": "toyota-fortuner-2023-white-60",
+    "brand": "Toyota",
+    "model": "Fortuner",
+    "badge": "4*2 2.8 Diesel Low Run (2023)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 36.75,
+    "emi": 64844,
+    "seats": 7,
+    "engine": "2.8L 4-Cylinder D-4D Diesel",
+    "power": "204 PS & 420 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 23K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Toyota Fortuner (4*2 2.8 Diesel Low Run) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 23K verified kilometers. Featuring a robust 2.8L 4-Cylinder D-4D Diesel producing 204 PS & 420 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 23K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-10-14T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "toyota-fortuner-2026-black-61",
+    "brand": "Toyota",
+    "model": "Fortuner",
+    "badge": "4*2 Diesel (New Generation) (2026)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Manual",
+    "price": 45.75,
+    "emi": 80724,
+    "seats": 7,
+    "engine": "2.8L High Output GD Turbo Diesel",
+    "power": "204 PS & 500 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 5.2K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Black",
+        "hex": "#18181B"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2026 Toyota Fortuner (4*2 Diesel (New Generation)) finished in pristine Black. Registered under UP32 with single 1st ownership, driven only 5.2K verified kilometers. Featuring a robust 2.8L High Output GD Turbo Diesel producing 204 PS & 500 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 5.2K Certified Kilometers",
+      "Year of Manufacture: 2026",
+      "Manual Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-10-15T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "lexus-nx-300h-2020-white-62",
+    "brand": "Lexus",
+    "model": "NX 300h",
+    "badge": "Luxury Self-Charging Hybrid (2020)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Hybrid",
+    "transmission": "Automatic",
+    "price": 29.75,
+    "emi": 52493,
+    "seats": 5,
+    "engine": "2.5L 4-Cylinder Atkinson Cycle Hybrid E-Four",
+    "power": "194 bhp & 210 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 99K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2020 Lexus NX 300h (Luxury Self-Charging Hybrid) finished in pristine White. Registered under UP32 with single 1st ownership, driven only 99K verified kilometers. Featuring a robust 2.5L 4-Cylinder Atkinson Cycle Hybrid E-Four producing 194 bhp & 210 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 99K Certified Kilometers",
+      "Year of Manufacture: 2020",
+      "Automatic Transmission with Hybrid Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-10-16T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "toyota-land-cruiser-2023-blue-63",
+    "brand": "Toyota",
+    "model": "Land Cruiser",
+    "badge": "LC300 ZX Flagship VIP (2023)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 187.5,
+    "emi": 330836,
+    "seats": 5,
+    "engine": "3.3L Twin-Turbo V6 Diesel",
+    "power": "304 bhp & 700 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 41K Kms)",
+    "images": [
+      "/vehicles/toyota-land-cruiser-300/front.jpg",
+      "/vehicles/toyota-land-cruiser-300/poster.jpg",
+      "/vehicles/toyota-land-cruiser-300/detail.jpg",
+      "/vehicles/toyota-land-cruiser-300/angle.jpg"
+    ],
+    "colors": [
+      {
+        "name": "Blue",
+        "hex": "#1E3A8A"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2023 Toyota Land Cruiser (LC300 ZX Flagship VIP) finished in pristine Blue. Registered under HP89 with single 1st ownership, driven only 41K verified kilometers. Featuring a robust 3.3L Twin-Turbo V6 Diesel producing 304 bhp & 700 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: HP89",
+      "Ownership: Single 1st Owner",
+      "Driven 41K Certified Kilometers",
+      "Year of Manufacture: 2023",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.9,
+    "createdAt": "2026-10-17T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "toyota-land-cruiser-2014-white-64",
+    "brand": "Toyota",
+    "model": "Land Cruiser",
+    "badge": "200 VX V8 Iconic (2014)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Diesel",
+    "transmission": "Automatic",
+    "price": 84.95,
+    "emi": 149891,
+    "seats": 7,
+    "engine": "4.5L Twin-Turbo V8 Diesel 4WD",
+    "power": "261 bhp & 650 Nm Torque",
+    "mileage": "15.5 km/pl (Odo: 1.33L Kms)",
+    "images": [
+      "/vehicles/toyota-land-cruiser-300/front.jpg",
+      "/vehicles/toyota-land-cruiser-300/poster.jpg",
+      "/vehicles/toyota-land-cruiser-300/detail.jpg",
+      "/vehicles/toyota-land-cruiser-300/angle.jpg"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2014 Toyota Land Cruiser (200 VX V8 Iconic) finished in pristine White. Registered under CH00 with verified 2nd ownership, driven only 1.33L verified kilometers. Featuring a robust 4.5L Twin-Turbo V8 Diesel 4WD producing 261 bhp & 650 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: CH00",
+      "Ownership: 2nd Owner",
+      "Driven 1.33L Certified Kilometers",
+      "Year of Manufacture: 2014",
+      "Automatic Transmission with Diesel Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 5,
+    "createdAt": "2026-10-18T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "volkswagen-beetle-2010-red-65",
+    "brand": "Volkswagen",
+    "model": "Beetle",
+    "badge": "2.0 Iconic Edition (2010)",
+    "type": "Certified Luxury Sedan",
+    "category": "premium",
+    "lifestyle": "Sedan",
+    "fuel": "Petrol",
+    "transmission": "Automatic",
+    "price": 16.75,
+    "emi": 29555,
+    "seats": 4,
+    "engine": "2.0L Naturally Aspirated Inline-4",
+    "power": "115 bhp & 172 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 20K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1617531653332-bd46c24f2068?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1542362567-b07eac79094d?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#DC2626"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2010 Volkswagen Beetle (2.0 Iconic Edition) finished in pristine Red. Registered under UP32 with 3rd ownership, driven only 20K verified kilometers. Featuring a robust 2.0L Naturally Aspirated Inline-4 producing 115 bhp & 172 Nm Torque, paired with a silky Automatic gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: 3rd Owner",
+      "Driven 20K Certified Kilometers",
+      "Year of Manufacture: 2010",
+      "Automatic Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.7,
+    "createdAt": "2026-10-19T12:04:54.266Z",
+    "isRecent": true
+  },
+  {
+    "id": "volkswagen-taigun-2024-red-66",
+    "brand": "Volkswagen",
+    "model": "Taigun",
+    "badge": "Topline 1.0 TSI MT (2024)",
+    "type": "Certified Luxury SUV",
+    "category": "premium",
+    "lifestyle": "SUV",
+    "fuel": "Petrol",
+    "transmission": "Manual",
+    "price": 12.75,
+    "emi": 22497,
+    "seats": 5,
+    "engine": "1.0L TSI 3-Cylinder Turbo Petrol",
+    "power": "115 PS & 178 Nm Torque",
+    "mileage": "14.0 km/pl (Odo: 31K Kms)",
+    "images": [
+      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1508974239320-0a029497e820?auto=format&fit=crop&q=80&w=1200",
+      "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=1200"
+    ],
+    "colors": [
+      {
+        "name": "Red",
+        "hex": "#B91C1C"
+      },
+      {
+        "name": "Obsidian Black",
+        "hex": "#111827"
+      },
+      {
+        "name": "Glacier Silver",
+        "hex": "#D1D5DB"
+      }
+    ],
+    "description": "Exotique Machines certified 2024 Volkswagen Taigun (Topline 1.0 TSI MT) finished in pristine Red. Registered under UP32 with single 1st ownership, driven only 31K verified kilometers. Featuring a robust 1.0L TSI 3-Cylinder Turbo Petrol producing 115 PS & 178 Nm Torque, paired with a silky Manual gearbox. Fully inspected and detailed to showroom standards.",
+    "features": [
+      "Registration: UP32",
+      "Ownership: Single 1st Owner",
+      "Driven 31K Certified Kilometers",
+      "Year of Manufacture: 2024",
+      "Manual Transmission with Petrol Powertrain",
+      "Exotique Certified 120-Point Multi-Stage Inspection",
+      "Full Documentation & Service History Verified",
+      "3-Year Roadside Assistance & Concierge Warranty"
+    ],
+    "rating": 4.8,
+    "createdAt": "2026-10-20T12:04:54.266Z",
+    "isRecent": true
+  }
+];
+
+export const PREMIUM_BRANDS = [
+  'Audi',
+  'BMW',
+  'Mercedes-Benz',
+  'Land Rover',
+  'Jaguar',
+  'Volvo',
+  'Lexus',
+  'Toyota',
+  'Volkswagen'
+];
+
+export const NON_PREMIUM_BRANDS = [
+  'Mahindra',
+  'Tata Motors',
+  'Hyundai',
+  'Maruti Suzuki',
+  'Kia',
+  'MG',
+  'Honda',
+  'Jeep'
+];
+
+export const BRANDS = [
+  ...PREMIUM_BRANDS,
+  ...NON_PREMIUM_BRANDS
+];
+
+export const FAQS = [
+  {
+    question: 'How do I apply for luxury car finance through Exotique Machines?',
+    answer: 'You can easily apply by filling out our Finance Application Form online. Select your preferred vehicle model, provide basic contact details, and calculate your custom EMI using our interactive calculator. Our finance team will coordinate with HDFC Bank, ICICI Bank, or SBI to secure the lowest premium rates.'
+  },
+  {
+    question: 'What is the minimum down payment required for vehicle purchase?',
+    answer: 'Standard financing down payments start as low as 10% to 15% of the ex-showroom price, subject to credit score valuation. We offer zero down payment programs occasionally for repeat luxury upgrade clients.'
+  },
+  {
+    question: 'How does the trade-in valuation estimator calculate my car\'s price?',
+    answer: 'Our Trade-In Estimator uses historical trade-in records, regional market demands, manufacture year, kilometers driven, and vehicle condition to compute a precise fair-market price range. A final physical validation is scheduled at your convenience.'
+  },
+  {
+    question: 'Can I customize my vehicle colors and optional premium equipment?',
+    answer: 'Yes! Exotique Machines offers a bespoke customization engine. On the vehicle details page, you can select standard exterior colors, and our premium consultants can assist with adding bespoke interior leather stitching, trim panels, and upgraded sound packages.'
+  }
+];
+
