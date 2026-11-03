@@ -1,11 +1,35 @@
 services:
-  web:
+  frontend:
+    container_name: exotique-frontend
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: exotique-machines-web
     restart: unless-stopped
     ports:
-      - "3000:80"
-    environment:
-      - NODE_ENV=production
+      - "127.0.0.1:3001:80"
+    networks:
+      - exotique_network
+
+  backend:
+    container_name: exotique-backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - exotique_uploads:/app/server/uploads
+      - exotique_data:/app/server/data
+    networks:
+      - exotique_network
+
+networks:
+  exotique_network:
+    external: true
+
+volumes:
+  exotique_uploads:
+  exotique_data:

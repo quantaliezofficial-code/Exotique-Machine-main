@@ -33,25 +33,3 @@ npm-debug.log*
 
 # Archives
 *.zip
-
-# Database Backups & Local SQLite
-backups/
-*.sql
-*.dump
-*.db
-*.sqlite
-luxura.db
-
-# Vehicle Import Manifests & Extracted Temp
-scripts/vehicle_import/import_manifest*.json
-scripts/vehicle_import/extracted_images/
-scripts/vehicle_import/logs/
-data/extracted/
-
-
-# Python & Databases
-__pycache__/
-*.py[cod]
-*$py.class
-*.db
-server/data/backups/

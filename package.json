@@ -12,9 +12,6 @@
     "server:node": "node server/index.js",
     "start": "python run_backend.py",
     "build": "tsc --noEmit && vite build",
-    "build:hostinger": "node build-hostinger.js",
-    "import:vehicles": "python scripts/import_vehicles.py",
-    "import:dry-run": "python scripts/import_vehicles.py --dry-run",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },

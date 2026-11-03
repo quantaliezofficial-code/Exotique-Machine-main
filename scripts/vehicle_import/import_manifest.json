@@ -1,0 +1,86 @@
+{
+  "created_at": "2026-11-02T19:01:19Z",
+  "updated_at": "2026-11-02T19:02:49Z",
+  "records": {
+    "bmw-x5-xdrive40i": {
+      "slug": "bmw-x5-xdrive40i",
+      "label": "BMW X5 xDrive40i",
+      "status": "completed",
+      "vehicle_id": "bmw-x5-xdrive40i",
+      "brand": "BMW",
+      "model": "X5 xDrive40i",
+      "price": 85.0,
+      "images": [
+        "/uploads/bmw-x5-angle-1793626523039-5f6db0a9.jpg",
+        "/uploads/bmw-x5-front-1793626523858-003549f3.jpg",
+        "/uploads/bmw-x5-poster-1793626524415-f1091a94.jpg",
+        "/uploads/bmw-x5-detail-1793626524973-d39488b8.jpg"
+      ],
+      "timestamp": "2026-11-02T19:02:49Z"
+    },
+    "bmw-730ld-m-sport": {
+      "slug": "bmw-730ld-m-sport",
+      "label": "BMW 730Ld M Sport",
+      "status": "completed",
+      "vehicle_id": "bmw-730ld-m-sport",
+      "brand": "BMW",
+      "model": "730Ld M Sport",
+      "price": 98.0,
+      "images": [
+        "/uploads/bmw-730ld-front-1793626446161-d2849713.jpg",
+        "/uploads/bmw-730ld-rear-1793626446163-4358b906.jpg",
+        "/uploads/bmw-730ld-interior-1793626446163-5b030ca5.jpg",
+        "/uploads/bmw-730ld-cockpit-1793626446164-9ed99c3f.jpg"
+      ],
+      "timestamp": "2026-11-02T19:01:30Z"
+    },
+    "mercedes-benz-gle-450-4matic": {
+      "slug": "mercedes-benz-gle-450-4matic",
+      "label": "Mercedes-Benz GLE 450 4MATIC",
+      "status": "completed",
+      "vehicle_id": "mercedes-benz-gle-450-4matic",
+      "brand": "Mercedes-Benz",
+      "model": "GLE 450 4MATIC",
+      "price": 92.0,
+      "images": [
+        "/uploads/mercedes-gle450-angle-1793626448434-a539cdf0.jpg",
+        "/uploads/mercedes-gle450-front-1793626448435-bf90140e.jpg",
+        "/uploads/mercedes-gle450-poster-1793626448436-da5fa4d8.jpg",
+        "/uploads/mercedes-gle450-detail-1793626448438-f46148e1.jpg"
+      ],
+      "timestamp": "2026-11-02T19:01:32Z"
+    },
+    "land-rover-defender-110": {
+      "slug": "land-rover-defender-110",
+      "label": "Land Rover Defender 110",
+      "status": "completed",
+      "vehicle_id": "land-rover-defender-110",
+      "brand": "Land Rover",
+      "model": "Defender 110",
+      "price": 105.0,
+      "images": [
+        "/uploads/defender-angle-1793626450866-4a4a7009.jpg",
+        "/uploads/defender-front-1793626450868-084ee4c6.jpg",
+        "/uploads/defender-poster-1793626450869-7764551d.jpg",
+        "/uploads/defender-detail-1793626450871-a51f78e1.jpg"
+      ],
+      "timestamp": "2026-11-02T19:01:35Z"
+    },
+    "toyota-land-cruiser-300": {
+      "slug": "toyota-land-cruiser-300",
+      "label": "Toyota Land Cruiser 300",
+      "status": "completed",
+      "vehicle_id": "toyota-land-cruiser-300",
+      "brand": "Toyota",
+      "model": "Land Cruiser 300",
+      "price": 210.0,
+      "images": [
+        "/uploads/toyota-lc300-angle-1793626453037-ee3372dc.jpg",
+        "/uploads/toyota-lc300-front-1793626453041-77c77e8d.jpg",
+        "/uploads/toyota-lc300-poster-1793626453044-312df3b5.jpg",
+        "/uploads/toyota-lc300-detail-1793626453044-3105856f.jpg"
+      ],
+      "timestamp": "2026-11-02T19:01:37Z"
+    }
+  }
+}
