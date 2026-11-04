@@ -14,18 +14,21 @@ from backend.schemas import (
 from backend.security import (
     hash_password,
     require_superadmin,
-    log_activity
+    log_activity,
+    validate_new_password,
+    get_client_ip,
 )
-from backend.routes.auth import get_client_ip
+from backend.permissions import DEFAULT_ADMIN_PERMISSIONS, ROLE_PRESETS, clean_permissions
 
 router = APIRouter(prefix="/api/auth/admins", tags=["Super Admin - Staff Management"])
 
-DEFAULT_PERMISSIONS = [
-    "inventory:view",
-    "inventory:create",
-    "inventory:edit",
-    "pricing:edit"
-]
+
+
+def _resolve_permissions(permissions, preset):
+    if preset and preset in ROLE_PRESETS and permissions is None:
+        return list(ROLE_PRESETS[preset]["permissions"])
+    cleaned = clean_permissions(permissions)
+    return cleaned
 
 @router.get("")
 def list_admins(
@@ -51,14 +54,16 @@ def create_admin(
     if not username or not payload.temporaryPassword:
         raise HTTPException(status_code=400, detail="Username and temporary password are required")
 
-    if len(payload.temporaryPassword) < 8:
-        raise HTTPException(status_code=400, detail="Temporary password must be at least 8 characters long")
+    validate_new_password(payload.temporaryPassword)
 
     # Check if username exists
     if db.query(User).filter(User.username == clean_username).first():
         raise HTTPException(status_code=400, detail=f'Username "{username}" is already in use.')
 
-    assigned_permissions = payload.permissions if payload.permissions else DEFAULT_PERMISSIONS
+    if payload.permissions is None and not payload.rolePreset:
+        assigned_permissions = list(DEFAULT_ADMIN_PERMISSIONS)
+    else:
+        assigned_permissions = _resolve_permissions(payload.permissions, payload.rolePreset)
 
     new_id = f"usr_{int(time.time() * 1000)}_{uuid.uuid4().hex[:5]}"
     password_hash = hash_password(payload.temporaryPassword)
@@ -69,7 +74,9 @@ def create_admin(
         name=payload.name.strip() if payload.name else "Staff Admin",
         password_hash=password_hash,
         role="admin",
+        role_preset=payload.rolePreset if payload.rolePreset in ROLE_PRESETS else None,
         permissions=assigned_permissions,
+        token_version=0,
         status="active",
         must_change_password=True,
         created_at=datetime.datetime.now(datetime.timezone.utc)
@@ -125,8 +132,12 @@ def update_admin(
     if payload.name is not None:
         target.name = payload.name.strip()
 
-    if target.role != "superadmin" and payload.permissions is not None:
-        target.permissions = payload.permissions
+    if target.role != "superadmin" and (payload.permissions is not None or payload.rolePreset):
+        new_perms = _resolve_permissions(payload.permissions, payload.rolePreset)
+        if set(new_perms) != set(target.permissions or []):
+            target.token_version = int(target.token_version or 0) + 1
+        target.permissions = new_perms
+        target.role_preset = payload.rolePreset if payload.rolePreset in ROLE_PRESETS else None
 
     target.updated_at = datetime.datetime.now(datetime.timezone.utc)
     db.commit()
@@ -160,15 +171,17 @@ def reset_admin_password(
 ):
     client_ip = get_client_ip(request)
 
-    if not payload.temporaryPassword or len(payload.temporaryPassword) < 8:
-        raise HTTPException(status_code=400, detail="Temporary password must be at least 8 characters long.")
+    validate_new_password(payload.temporaryPassword)
 
     target = db.query(User).filter(User.id == user_id).first()
     if not target:
         raise HTTPException(status_code=404, detail="Admin account not found")
+    if target.role == "superadmin" and target.id != current_user.id:
+        raise HTTPException(status_code=403, detail="Cannot reset another Super Admin's password.")
 
     target.password_hash = hash_password(payload.temporaryPassword)
-    if target.role == "admin":
+    target.token_version = int(target.token_version or 0) + 1
+    if target.id != current_user.id:
         target.must_change_password = True
 
     target.updated_at = datetime.datetime.now(datetime.timezone.utc)
@@ -212,6 +225,7 @@ def toggle_admin_status(
         raise HTTPException(status_code=403, detail="Super Admin account cannot be deactivated.")
 
     target.status = payload.status
+    target.token_version = int(target.token_version or 0) + 1
     target.updated_at = datetime.datetime.now(datetime.timezone.utc)
     db.commit()
 

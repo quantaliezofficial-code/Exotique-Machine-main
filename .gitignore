@@ -1,35 +1,64 @@
-# Dependencies
+# ---------------------------------------------------------------- dependencies & builds
 node_modules/
-
-# Build output
-build/
 dist/
-
-# Coverage
+build/
 coverage/
+*.tsbuildinfo
+.vite/
 
-# OS files
+# ---------------------------------------------------------------- python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# ---------------------------------------------------------------- secrets (never commit)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------- runtime data (lives in Docker volumes)
+# Databases, backups and user data contain password hashes and customer details.
+*.db
+*.db-journal
+*.sqlite3
+*.dump
+backups/
+server/uploads/
+server/originals/
+server/data/*
+!server/data/vehicles.json
+
+# ---------------------------------------------------------------- documents & working files
+# Reports, guides and office files are shared separately, not deployed.
+docs/
+*.docx
+*.doc
+*.pdf
+*.pptx
+*.xlsx
+*.zip
+*.tgz
+*.tar.gz
+*.backup-*
+*.bak
+.hallmark/
+scripts/vehicle_import/logs/
+scripts/vehicle_import/extracted_images/
+scripts/vehicle_import/import_manifest.json
+
+# ---------------------------------------------------------------- OS / editors / logs
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
-npm-debug.log*
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-!.env.example
-
-# IDE / Editor
+desktop.ini
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Vercel
+*.log
+npm-debug.log*
 .vercel/
-
-# Archives
-*.zip

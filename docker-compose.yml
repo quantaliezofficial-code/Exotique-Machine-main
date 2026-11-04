@@ -5,8 +5,11 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    # Only reachable from the host's reverse proxy (TLS terminates there).
     ports:
       - "127.0.0.1:3001:80"
+    depends_on:
+      - backend
     networks:
       - exotique_network
 
@@ -18,18 +21,26 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    ports:
-      - "127.0.0.1:5000:5000"
+    environment:
+      ENVIRONMENT: production
+      FRONTEND_SHELL_URL: http://exotique-frontend/_shell/index.html
+    # No host port: the API is reached only through the frontend container.
     volumes:
       - exotique_uploads:/app/server/uploads
+      - exotique_originals:/app/server/originals
       - exotique_data:/app/server/data
     networks:
       - exotique_network
+    security_opt:
+      - no-new-privileges:true
 
 networks:
   exotique_network:
     external: true
 
 volumes:
+  # Existing volumes: never remove them (docker compose down -v would delete every photo).
   exotique_uploads:
   exotique_data:
+  # New: untouched originals of every upload (private, never served).
+  exotique_originals:

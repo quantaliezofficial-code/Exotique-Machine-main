@@ -1,341 +1,167 @@
-import { Vehicle, AdminUser, ActivityLog, AdminPermission } from '../types';
-import { VEHICLES } from '../data';
+import type {
+  Vehicle, AdminUser, ActivityLog, AdminPermission, HomePayload, Offer, Review, SiteSettings,
+} from '../types';
 
 const API_BASE = '/api';
 
-export interface LoginResponse {
-  token: string;
-  user: AdminUser;
+/**
+ * Admin sessions use an httpOnly cookie set by the server; the token is never visible to
+ * JavaScript. Every request sends X-Requested-With, which the server requires on
+ * state-changing cookie requests (CSRF protection).
+ */
+export class ApiError extends Error {
+  status: number;
+  detail: unknown;
+  constructor(message: string, status: number, detail?: unknown) {
+    super(message);
+    this.status = status;
+    this.detail = detail;
+  }
 }
+
+async function request<T = any>(path: string, init: RequestInit = {}): Promise<T> {
+  const headers = new Headers(init.headers);
+  headers.set('X-Requested-With', 'XMLHttpRequest');
+  if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+  const res = await fetch(path.startsWith('/') ? path : `${API_BASE}/${path}`, {
+    ...init,
+    headers,
+    credentials: 'same-origin',
+  });
+  let data: any = null;
+  const text = await res.text();
+  if (text) {
+    try { data = JSON.parse(text); } catch { data = { error: text.slice(0, 200) }; }
+  }
+  if (!res.ok) {
+    const message =
+      (data && (data.error || (typeof data.detail === 'string' ? data.detail : data.detail?.message))) ||
+      `Request failed (${res.status})`;
+    throw new ApiError(message, res.status, data?.detail);
+  }
+  return data as T;
+}
+
+const json = (method: string, body?: unknown): RequestInit => ({ method, body: body === undefined ? undefined : JSON.stringify(body) });
 
 export interface CreateAdminPayload {
   username: string;
   name: string;
   temporaryPassword: string;
-  permissions: AdminPermission[];
+  permissions?: AdminPermission[];
+  rolePreset?: string | null;
 }
 
 export interface UpdateAdminPayload {
   username?: string;
   name?: string;
   permissions?: AdminPermission[];
+  rolePreset?: string | null;
 }
 
 export const api = {
-  // Fetch vehicles with fallback to static data if backend is offline
-  async getVehicles(params?: { category?: string; brand?: string; fuel?: string; search?: string; recent?: boolean }): Promise<Vehicle[]> {
-    try {
-      const query = new URLSearchParams();
-      if (params?.category) query.append('category', params.category);
-      if (params?.brand) query.append('brand', params.brand);
-      if (params?.fuel) query.append('fuel', params.fuel);
-      if (params?.search) query.append('search', params.search);
-      if (params?.recent) query.append('recent', 'true');
+  request,
 
-      const url = `${API_BASE}/vehicles${query.toString() ? `?${query.toString()}` : ''}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const data = await res.json();
-      if (data.success && Array.isArray(data.vehicles)) {
-        return data.vehicles;
-      }
-      return VEHICLES;
-    } catch (err) {
-      console.warn('Backend API unavailable, using fallback dataset:', err);
-      return VEHICLES;
-    }
+  // ------------------------------------------------------------ public content
+  async getVehicles(): Promise<Vehicle[]> {
+    const data = await request<{ vehicles: Vehicle[] }>(`${API_BASE}/vehicles`);
+    return Array.isArray(data.vehicles) ? data.vehicles : [];
   },
-
-  // Fetch single vehicle
   async getVehicle(id: string): Promise<Vehicle | null> {
     try {
-      const res = await fetch(`${API_BASE}/vehicles/${id}`);
-      if (!res.ok) throw new Error('Vehicle not found');
-      const data = await res.json();
+      const data = await request<{ vehicle: Vehicle }>(`${API_BASE}/vehicles/${encodeURIComponent(id)}`);
       return data.vehicle || null;
-    } catch (err) {
-      console.warn(`Error fetching vehicle ${id}, searching local fallback:`, err);
-      return VEHICLES.find(v => v.id === id) || null;
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 404) return null;
+      throw e;
     }
   },
+  getHome: (preview = false) => request<HomePayload>(`${API_BASE}/public/home${preview ? '?preview=1' : ''}`),
+  getSiteSettings: () => request<{ settings: SiteSettings }>(`${API_BASE}/public/site-settings`),
+  getOffers: (preview = false) => request<{ offers: Offer[] }>(`${API_BASE}/public/offers${preview ? '?preview=1' : ''}`),
+  getOffer: (slug: string) => request<{ offer: Offer; vehicle: Vehicle | null }>(`${API_BASE}/public/offers/${slug}`),
+  getReviews: (limit = 20) => request<{ reviews: Review[] }>(`${API_BASE}/public/reviews?limit=${limit}`),
+  submitReview: (payload: { customerName: string; customerTitle?: string; rating?: number; body: string; vehicleId?: string; website?: string }) =>
+    request<{ success: boolean; message: string }>(`${API_BASE}/public/reviews`, json('POST', payload)),
 
-  // Admin login
-  async login(username: string, password: string): Promise<LoginResponse> {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+  // ------------------------------------------------------------ lead forms
+  applyFinance: (payload: { name: string; phone: string; whatsappUpdates?: boolean; model: string; website?: string }) =>
+    request<{ success: boolean; reference: string }>(`${API_BASE}/finance/apply`, json('POST', payload)),
+  bookTestDrive: (payload: {
+    modelId: string; modelName: string; date: string; time: string; name: string; phone: string; email: string;
+    hasLicense?: boolean; website?: string;
+  }) => request<{ success: boolean; reference: string }>(`${API_BASE}/test-drives`, json('POST', payload)),
+  bookService: (payload: {
+    vehicleModel: string; serviceType: string; preferredDate: string; customerName: string; customerPhone: string;
+    notes?: string; website?: string;
+  }) => request<{ success: boolean; reference: string }>(`${API_BASE}/service/book`, json('POST', payload)),
+  sendEnquiry: (payload: { name: string; phone: string; email?: string; vehicleInterest?: string; message?: string; source?: string; website?: string }) =>
+    request<{ success: boolean; reference: string }>(`${API_BASE}/enquiries`, json('POST', payload)),
 
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Login failed');
-    }
-
-    return data;
-  },
-
-  // Check active session & fetch live profile
-  async getMe(token: string): Promise<AdminUser | null> {
+  // ------------------------------------------------------------ auth
+  login: (username: string, password: string) =>
+    request<{ user: AdminUser }>(`${API_BASE}/auth/login`, json('POST', { username, password })),
+  logout: () => request(`${API_BASE}/auth/logout`, json('POST')),
+  async getMe(): Promise<AdminUser | null> {
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
+      const data = await request<{ user: AdminUser | null }>(`${API_BASE}/auth/session`);
       return data.user || null;
     } catch {
       return null;
     }
   },
+  changeOwnPassword: (params: { currentPassword: string; newPassword: string }) =>
+    request<{ success: boolean; message: string; user: AdminUser }>(`${API_BASE}/auth/change-own-password`, json('POST', params)),
+  updateOwnProfile: (params: { name?: string; username: string; currentPassword: string }) =>
+    request<{ success: boolean; message: string; user: AdminUser }>(`${API_BASE}/auth/update-own-profile`, json('POST', params)),
+  getPermissionCatalogue: () =>
+    request<{ permissions: Record<string, string>; presets: Record<string, { label: string; permissions: AdminPermission[] }> }>(
+      `${API_BASE}/auth/permissions`),
 
-  // Change own password
-  async changeOwnPassword(
-    params: { currentPassword?: string; newPassword: string },
-    token: string
-  ): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE}/auth/change-own-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(params)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to change password');
-    return data;
+  // ------------------------------------------------------------ staff management
+  async getAdmins(): Promise<AdminUser[]> {
+    return (await request<{ admins: AdminUser[] }>(`${API_BASE}/auth/admins`)).admins || [];
+  },
+  async createAdmin(payload: CreateAdminPayload): Promise<AdminUser> {
+    return (await request<{ admin: AdminUser }>(`${API_BASE}/auth/admins`, json('POST', payload))).admin;
+  },
+  async updateAdmin(id: string, payload: UpdateAdminPayload): Promise<AdminUser> {
+    return (await request<{ admin: AdminUser }>(`${API_BASE}/auth/admins/${id}`, json('PUT', payload))).admin;
+  },
+  resetAdminPassword: (id: string, temporaryPassword: string) =>
+    request<{ success: boolean; message: string }>(`${API_BASE}/auth/admins/${id}/reset-password`, json('POST', { temporaryPassword })),
+  toggleAdminStatus: (id: string, status: 'active' | 'deactivated') =>
+    request<{ success: boolean; message: string }>(`${API_BASE}/auth/admins/${id}/status`, json('PATCH', { status })),
+  deleteAdmin: (id: string) => request(`${API_BASE}/auth/admins/${id}`, json('DELETE')),
+  async getActivityLogs(params?: { limit?: number; action?: string; actor?: string }): Promise<ActivityLog[]> {
+    const q = new URLSearchParams();
+    if (params?.limit) q.append('limit', String(params.limit));
+    if (params?.action) q.append('action', params.action);
+    if (params?.actor) q.append('actor', params.actor);
+    return (await request<{ logs: ActivityLog[] }>(`${API_BASE}/activity-logs${[...q].length ? `?${q}` : ''}`)).logs || [];
   },
 
-  // Update own username & profile
-  async updateOwnProfile(
-    params: { name?: string; username: string; currentPassword: string },
-    token: string
-  ): Promise<{ success: boolean; message: string; user: AdminUser; token: string }> {
-    const res = await fetch(`${API_BASE}/auth/update-own-profile`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(params)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update username');
-    return data;
+  // ------------------------------------------------------------ inventory
+  async getAdminVehicles(): Promise<Vehicle[]> {
+    return (await request<{ vehicles: Vehicle[] }>(`${API_BASE}/admin/vehicles`)).vehicles || [];
   },
-
-  // ==========================================
-  // Super Admin - User Management APIs
-  // ==========================================
-
-  // Get all admin accounts
-  async getAdmins(token: string): Promise<AdminUser[]> {
-    const res = await fetch(`${API_BASE}/auth/admins`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch admin accounts');
-    return data.admins || [];
+  async createVehicle(formData: FormData): Promise<Vehicle> {
+    return (await request<{ vehicle: Vehicle }>(`${API_BASE}/vehicles`, { method: 'POST', body: formData })).vehicle;
   },
-
-  // Create new Admin account
-  async createAdmin(payload: CreateAdminPayload, token: string): Promise<AdminUser> {
-    const res = await fetch(`${API_BASE}/auth/admins`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to create admin account');
-    return data.admin;
+  async updateVehicle(id: string, formData: FormData): Promise<Vehicle> {
+    return (await request<{ vehicle: Vehicle }>(`${API_BASE}/vehicles/${encodeURIComponent(id)}`, { method: 'PUT', body: formData })).vehicle;
   },
+  deleteVehicle: (id: string) => request(`${API_BASE}/vehicles/${encodeURIComponent(id)}`, json('DELETE')),
 
-  // Update existing Admin account
-  async updateAdmin(id: string, payload: UpdateAdminPayload, token: string): Promise<AdminUser> {
-    const res = await fetch(`${API_BASE}/auth/admins/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update admin account');
-    return data.admin;
+  // ------------------------------------------------------------ CMS (admin)
+  admin: {
+    get: <T = any>(path: string) => request<T>(`${API_BASE}/admin/${path}`),
+    post: <T = any>(path: string, body?: unknown) => request<T>(`${API_BASE}/admin/${path}`, json('POST', body ?? {})),
+    put: <T = any>(path: string, body: unknown) => request<T>(`${API_BASE}/admin/${path}`, json('PUT', body)),
+    patch: <T = any>(path: string, body: unknown) => request<T>(`${API_BASE}/admin/${path}`, json('PATCH', body)),
+    del: <T = any>(path: string) => request<T>(`${API_BASE}/admin/${path}`, json('DELETE')),
+    upload: <T = any>(path: string, form: FormData) => request<T>(`${API_BASE}/admin/${path}`, { method: 'POST', body: form }),
   },
-
-  // Reset Admin's password
-  async resetAdminPassword(id: string, temporaryPassword: string, token: string): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE}/auth/admins/${id}/reset-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ temporaryPassword })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to reset password');
-    return data;
-  },
-
-  // Toggle Admin status: active vs deactivated
-  async toggleAdminStatus(id: string, status: 'active' | 'deactivated', token: string): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE}/auth/admins/${id}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ status })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to update admin status');
-    return data;
-  },
-
-  // Delete Admin account
-  async deleteAdmin(id: string, token: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/auth/admins/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to delete admin');
-  },
-
-  // Get Activity Audit Logs
-  async getActivityLogs(token: string, params?: { limit?: number; action?: string; actor?: string }): Promise<ActivityLog[]> {
-    const query = new URLSearchParams();
-    if (params?.limit) query.append('limit', params.limit.toString());
-    if (params?.action) query.append('action', params.action);
-    if (params?.actor) query.append('actor', params.actor);
-
-    const url = `${API_BASE}/activity-logs${query.toString() ? `?${query.toString()}` : ''}`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to fetch activity logs');
-    return data.logs || [];
-  },
-
-  // ==========================================
-  // Vehicle Fleet CRUD
-  // ==========================================
-
-  // Create new vehicle with photo upload
-  async createVehicle(formData: FormData, token: string): Promise<Vehicle> {
-    const res = await fetch(`${API_BASE}/vehicles`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to create vehicle');
-    }
-
-    return data.vehicle;
-  },
-
-  // Update existing vehicle
-  async updateVehicle(id: string, formData: FormData, token: string): Promise<Vehicle> {
-    const res = await fetch(`${API_BASE}/vehicles/${id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to update vehicle');
-    }
-
-    return data.vehicle;
-  },
-
-  // Delete vehicle
-  async deleteVehicle(id: string, token: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/vehicles/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Failed to delete vehicle');
-    }
-  },
-
-  // Customer Bookings & Applications
-  async applyFinance(payload: { name: string; phone: string; whatsappUpdates?: boolean; model: string }): Promise<any> {
-    try {
-      const res = await fetch(`${API_BASE}/finance/apply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('Finance API offline, handled locally:', err);
-      return { success: true };
-    }
-  },
-
-  async bookTestDrive(payload: {
-    modelId: string;
-    modelName: string;
-    date: string;
-    time: string;
-    name: string;
-    phone: string;
-    email: string;
-    hasLicense?: boolean;
-  }): Promise<any> {
-    try {
-      const res = await fetch(`${API_BASE}/test-drives`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('Test drive API offline, handled locally:', err);
-      return { success: true };
-    }
-  },
-
-  async bookService(payload: {
-    vehicleModel: string;
-    serviceType: string;
-    preferredDate: string;
-    customerName: string;
-    customerPhone: string;
-    notes?: string;
-  }): Promise<any> {
-    try {
-      const res = await fetch(`${API_BASE}/service/book`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      return await res.json();
-    } catch (err) {
-      console.warn('Service API offline, handled locally:', err);
-      return { success: true };
-    }
-  }
 };

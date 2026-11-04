@@ -1,235 +1,243 @@
-import os
-import re
 import json
-import time
-import uuid
+import re
 import datetime
-from pathlib import Path
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form
-from sqlalchemy.orm import Session
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form, Response
 from sqlalchemy import or_, desc
-from backend.config import settings
+from sqlalchemy.orm import Session
+
+from backend.cms.images import store_image, delete_image_files
+from backend.cms.media_registry import register_media, after_commit_generate
+from backend.cms.references import url_is_referenced
+from backend.cms.service import content_cache, invalidate_content
 from backend.database import get_db
-from backend.models import Vehicle, User
-from backend.security import (
-    require_permission,
-    get_current_user,
-    log_activity
-)
-from backend.routes.auth import get_client_ip
+from backend.models import Vehicle, User, MediaAsset, VEHICLE_STATUSES
+from backend.permissions import has_permission
+from backend.security import require_permission, log_activity, get_client_ip
 
 router = APIRouter(prefix="/api", tags=["Vehicles & Uploads"])
 
-ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"}
-MAX_FILE_SIZE = 15 * 1024 * 1024  # 15MB
+MAX_IMAGES_PER_VEHICLE = 30
+MAX_PHOTOS_PER_REQUEST = 20
+SAFE_IMAGE_URL = re.compile(r"^(/uploads/[A-Za-z0-9_.-]+|https://[A-Za-z0-9.-]+/[^\s\"'<>]*)$")
 
 
-def save_uploaded_file(file: UploadFile) -> str:
-    """Save uploaded image file securely and return its /uploads/ URL."""
-    ext = Path(file.filename or "").suffix.lower()
-    if ext not in ALLOWED_IMAGE_EXTENSIONS:
-        raise HTTPException(status_code=400, detail="Only image files (JPG, PNG, WEBP, GIF, SVG) are permitted")
+def _save_photos(db: Session, photos: List[UploadFile], user: User) -> List[str]:
+    files = [f for f in photos or [] if f.filename]
+    if len(files) > MAX_PHOTOS_PER_REQUEST:
+        raise HTTPException(status_code=400, detail=f"Upload at most {MAX_PHOTOS_PER_REQUEST} photos at a time")
+    urls = []
+    for file in files:
+        stored = store_image(file)
+        register_media(db, stored, user, "vehicles", original_name=file.filename)
+        urls.append(stored.url)
+    return urls
 
-    orig_stem = Path(file.filename or "image").stem
-    clean_stem = re.sub(r"[^a-zA-Z0-9_-]", "_", orig_stem)
-    unique_suffix = f"{int(time.time() * 1000)}-{uuid.uuid4().hex[:8]}"
-    filename = f"{clean_stem}-{unique_suffix}{ext or '.jpg'}"
 
-    target_path = settings.UPLOADS_DIR / filename
-    contents = file.file.read()
+def _filenames(urls: List[str]) -> List[str]:
+    return [u[len("/uploads/"):] for u in urls if u.startswith("/uploads/")]
 
-    if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=400, detail="File size exceeds maximum permitted limit (15MB).")
 
-    with open(target_path, "wb") as f:
-        f.write(contents)
+def _parse_url_list(raw: Optional[str]) -> List[str]:
+    if not raw:
+        return []
+    try:
+        items = json.loads(raw)
+        if not isinstance(items, list):
+            items = []
+    except Exception:
+        items = [s.strip() for s in raw.split(",")]
+    out = []
+    for u in items:
+        if isinstance(u, str) and SAFE_IMAGE_URL.match(u.strip()):
+            out.append(u.strip())
+    return out
 
-    return f"/uploads/{filename}"
+
+def _parse_list(raw: Optional[str]) -> List[str]:
+    if raw is None:
+        return []
+    try:
+        val = json.loads(raw)
+        if isinstance(val, list):
+            return [str(x).strip()[:300] for x in val if str(x).strip()][:40]
+    except Exception:
+        pass
+    return [s.strip()[:300] for s in raw.split("\n") if s.strip()][:40]
+
+
+def _parse_colors(raw: Optional[str]):
+    try:
+        val = json.loads(raw or "[]")
+    except Exception:
+        return None
+    colors = []
+    for c in val if isinstance(val, list) else []:
+        if isinstance(c, dict) and c.get("name"):
+            hexv = str(c.get("hex", "#111111"))
+            if not re.match(r"^#[0-9A-Fa-f]{3,8}$", hexv):
+                hexv = "#111111"
+            colors.append({"name": str(c["name"])[:60], "hex": hexv})
+    return colors[:12]
+
+
+def _opt_int(value: Optional[str], lo: int, hi: int, field: str) -> Optional[int]:
+    if value is None or str(value).strip() == "":
+        return None
+    try:
+        n = int(float(value))
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"{field} must be a number")
+    if n < lo or n > hi:
+        raise HTTPException(status_code=400, detail=f"{field} must be between {lo} and {hi}")
+    return n
+
+
+def _check_status(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    if value not in VEHICLE_STATUSES:
+        raise HTTPException(status_code=400, detail=f"status must be one of {', '.join(VEHICLE_STATUSES)}")
+    return value
+
+
+def _truthy(value: Optional[str]) -> Optional[bool]:
+    if value is None:
+        return None
+    return str(value).lower() in ("1", "true", "yes", "on")
+
+
+def _public_query(db: Session):
+    return db.query(Vehicle).filter(Vehicle.is_published.is_(True))
 
 
 # ==========================================
-# Vehicle Fleet Public Endpoints
+# Public endpoints
 # ==========================================
+
 
 @router.get("/vehicles")
 def get_vehicles(
+    response: Response,
     category: Optional[str] = None,
     brand: Optional[str] = None,
     fuel: Optional[str] = None,
     search: Optional[str] = None,
-    recent: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    query = db.query(Vehicle)
+    def build():
+        query = _public_query(db)
+        if category and category.lower() != "all":
+            query = query.filter(Vehicle.category == category)
+        if brand and brand.lower() != "all":
+            query = query.filter(Vehicle.brand.ilike(brand))
+        if fuel and fuel.lower() != "all":
+            query = query.filter(Vehicle.fuel.ilike(fuel))
+        if search and search.strip():
+            q = f"%{search.strip()[:80]}%"
+            query = query.filter(or_(Vehicle.brand.ilike(q), Vehicle.model.ilike(q),
+                                     Vehicle.type.ilike(q), Vehicle.badge.ilike(q)))
+        vehicles = query.order_by(desc(Vehicle.created_at)).all()
+        return {"success": True, "count": len(vehicles), "vehicles": [v.to_dict(public=True) for v in vehicles]}
 
-    if category and category.lower() != "all":
-        query = query.filter(Vehicle.category == category)
-
-    if brand and brand.lower() != "all":
-        query = query.filter(Vehicle.brand.ilike(brand))
-
-    if fuel and fuel.lower() != "all":
-        query = query.filter(Vehicle.fuel.ilike(fuel))
-
-    if search and search.strip():
-        q = f"%{search.strip()}%"
-        query = query.filter(
-            or_(
-                Vehicle.brand.ilike(q),
-                Vehicle.model.ilike(q),
-                Vehicle.type.ilike(q),
-                Vehicle.badge.ilike(q)
-            )
-        )
-
-    if recent == "true":
-        query = query.order_by(desc(Vehicle.created_at))
-    else:
-        query = query.order_by(desc(Vehicle.created_at))
-
-    vehicles = query.all()
-    return {
-        "success": True,
-        "count": len(vehicles),
-        "vehicles": [v.to_dict() for v in vehicles]
-    }
+    key = f"vehicles:{category}:{brand}:{fuel}:{(search or '')[:80]}"
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return content_cache.get_or_set(key, build)
 
 
 @router.get("/vehicles/{vehicle_id}")
-def get_vehicle(vehicle_id: str, db: Session = Depends(get_db)):
-    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+def get_vehicle(vehicle_id: str, response: Response, db: Session = Depends(get_db)):
+    vehicle = _public_query(db).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
-    return {"success": True, "vehicle": vehicle.to_dict()}
+    response.headers["Cache-Control"] = "public, max-age=30"
+    return {"success": True, "vehicle": vehicle.to_dict(public=True)}
 
 
 # ==========================================
-# Standalone Image Upload
+# Admin endpoints
 # ==========================================
+
+
+@router.get("/admin/vehicles")
+def admin_list_vehicles(current_user: User = Depends(require_permission("inventory:view")),
+                        db: Session = Depends(get_db)):
+    vehicles = db.query(Vehicle).order_by(desc(Vehicle.created_at)).all()
+    return {"success": True, "count": len(vehicles), "vehicles": [v.to_dict() for v in vehicles]}
+
 
 @router.post("/upload")
-def upload_images(
-    photos: List[UploadFile] = File(...),
-    current_user: User = Depends(get_current_user)
-):
-    if not photos or len(photos) == 0:
+def upload_images(photos: List[UploadFile] = File(...),
+                  current_user: User = Depends(require_permission("cms:media")),
+                  db: Session = Depends(get_db)):
+    if not photos:
         raise HTTPException(status_code=400, detail="No image files uploaded")
+    urls = _save_photos(db, photos, current_user)
+    db.commit()
+    after_commit_generate(_filenames(urls))
+    return {"success": True, "urls": urls, "count": len(urls)}
 
-    saved_urls = []
-    for file in photos:
-        url = save_uploaded_file(file)
-        saved_urls.append(url)
-
-    return {
-        "success": True,
-        "urls": saved_urls,
-        "count": len(saved_urls)
-    }
-
-
-# ==========================================
-# Create Vehicle (Requires inventory:create)
-# ==========================================
 
 @router.post("/vehicles", status_code=status.HTTP_201_CREATED)
 def create_vehicle(
     request: Request,
-    brand: str = Form(...),
-    model: str = Form(...),
-    price: float = Form(...),
-    badge: Optional[str] = Form(None),
-    type: Optional[str] = Form(None),
+    brand: str = Form(..., max_length=100),
+    model: str = Form(..., max_length=100),
+    price: float = Form(..., gt=0, lt=100000),
+    badge: Optional[str] = Form(None, max_length=100),
+    type: Optional[str] = Form(None, max_length=100),
     category: Optional[str] = Form(None),
-    lifestyle: Optional[str] = Form("SUV"),
-    fuel: Optional[str] = Form("Petrol"),
-    transmission: Optional[str] = Form("Automatic"),
-    emi: Optional[int] = Form(None),
-    seats: Optional[int] = Form(5),
-    engine: Optional[str] = Form("Performance Powertrain"),
-    power: Optional[str] = Form("Certified Performance"),
-    mileage: Optional[str] = Form("Verified Showroom Mileage"),
-    description: Optional[str] = Form(None),
-    features: Optional[str] = Form(None),
-    colors: Optional[str] = Form(None),
-    imageUrls: Optional[str] = Form(None),
-    rating: Optional[float] = Form(5.0),
+    lifestyle: Optional[str] = Form("SUV", max_length=50),
+    fuel: Optional[str] = Form("Petrol", max_length=50),
+    transmission: Optional[str] = Form("Automatic", max_length=50),
+    emi: Optional[int] = Form(None, ge=0),
+    seats: Optional[int] = Form(5, ge=1, le=20),
+    engine: Optional[str] = Form("", max_length=200),
+    power: Optional[str] = Form("", max_length=200),
+    mileage: Optional[str] = Form("", max_length=200),
+    description: Optional[str] = Form(None, max_length=5000),
+    features: Optional[str] = Form(None, max_length=20000),
+    colors: Optional[str] = Form(None, max_length=5000),
+    imageUrls: Optional[str] = Form(None, max_length=20000),
+    year: Optional[str] = Form(None),
+    kmDriven: Optional[str] = Form(None),
+    owners: Optional[str] = Form(None),
+    registration: Optional[str] = Form(None, max_length=40),
+    condition: Optional[str] = Form("used"),
+    status_: Optional[str] = Form("available", alias="status"),
+    isPublished: Optional[str] = Form("true"),
     photos: List[UploadFile] = File(default=[]),
     current_user: User = Depends(require_permission("inventory:create")),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    client_ip = get_client_ip(request)
-
-    if not brand.strip() or not model.strip():
+    brand_clean, model_clean = brand.strip(), model.strip()
+    if not brand_clean or not model_clean:
         raise HTTPException(status_code=400, detail="Brand and Model are required")
-
-    brand_clean = brand.strip()
-    model_clean = model.strip()
-
-    cat = category if category else ("premium" if price > 25 else "non-premium")
+    if category not in (None, "", "premium", "non-premium"):
+        raise HTTPException(status_code=400, detail="category must be premium or non-premium")
+    cat = category or ("premium" if price > 25 else "non-premium")
     calculated_emi = emi if emi else int(round((price * 100000 * 0.015) / 100) * 100)
+    this_year = datetime.date.today().year
+    year_v = _opt_int(year, 1950, this_year + 1, "Year")
 
-    # Parse features
-    parsed_features = []
-    if features:
-        try:
-            parsed_features = json.loads(features)
-        except Exception:
-            parsed_features = [s.strip() for s in features.split("\n") if s.strip()]
-    if not parsed_features:
-        parsed_features = [
-            "120-Point Certified Inspection",
-            "Single Ownership History",
-            "Original OEM Spares Only"
-        ]
+    new_urls = _save_photos(db, photos, current_user)
+    images_list = new_urls + _parse_url_list(imageUrls)
+    if len(images_list) > MAX_IMAGES_PER_VEHICLE:
+        raise HTTPException(status_code=400, detail=f"A vehicle can have at most {MAX_IMAGES_PER_VEHICLE} images")
 
-    # Parse colors
-    parsed_colors = []
-    if colors:
-        try:
-            parsed_colors = json.loads(colors)
-        except Exception:
-            parsed_colors = [{"name": "Standard Showroom Finish", "hex": "#111111"}]
-    if not parsed_colors:
-        parsed_colors = [
-            {"name": "Obsidian Black", "hex": "#0B0C0E"},
-            {"name": "Polar White", "hex": "#FDFCFA"}
-        ]
-
-    # Handle images
-    images_list = []
-    if photos:
-        for file in photos:
-            if file.filename:
-                images_list.append(save_uploaded_file(file))
-
-    if imageUrls:
-        try:
-            extra = json.loads(imageUrls)
-            if isinstance(extra, list):
-                images_list.extend(extra)
-        except Exception:
-            images_list.extend([s.strip() for s in imageUrls.split(",") if s.strip()])
-
-    if not images_list:
-        images_list = [
-            "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=1200"
-        ]
-
-    # Generate unique slug ID
-    base_slug = re.sub(r"[^a-z0-9]+", "-", f"{brand_clean}-{model_clean}".lower()).strip("-")
-    vehicle_id = base_slug
-    counter = 1
+    base_slug = re.sub(r"[^a-z0-9]+", "-", f"{brand_clean}-{model_clean}-{year_v or ''}".lower()).strip("-")[:110]
+    vehicle_id, counter = base_slug, 1
     while db.query(Vehicle).filter(Vehicle.id == vehicle_id).first():
         vehicle_id = f"{base_slug}-{counter}"
         counter += 1
 
-    new_vehicle = Vehicle(
+    v = Vehicle(
         id=vehicle_id,
         brand=brand_clean,
         model=model_clean,
-        badge=badge.strip() if badge else f"{model_clean} Edition",
-        type=type.strip() if type else ("Luxury SUV" if cat == "premium" else "Compact SUV"),
+        badge=(badge or "").strip() or model_clean,
+        type=(type or "").strip() or ("Luxury SUV" if cat == "premium" else "SUV"),
         category=cat,
         lifestyle=lifestyle or "SUV",
         fuel=fuel or "Petrol",
@@ -237,225 +245,157 @@ def create_vehicle(
         price=price,
         emi=calculated_emi,
         seats=seats or 5,
-        engine=engine.strip() if engine else "Performance Powertrain",
-        power=power.strip() if power else "Certified Performance",
-        mileage=mileage.strip() if mileage else "Verified Showroom Mileage",
+        engine=(engine or "").strip(),
+        power=(power or "").strip(),
+        mileage=(mileage or "").strip(),
         images=images_list,
-        colors=parsed_colors,
-        description=description.strip() if description else f"Exotique Machines certified {brand_clean} {model_clean} in pristine condition.",
-        features=parsed_features,
-        rating=rating or 5.0,
+        colors=_parse_colors(colors) or [],
+        description=(description or "").strip() or f"{year_v or ''} {brand_clean} {model_clean} available at Exotique Machines, Lucknow.".strip(),
+        features=_parse_list(features),
+        rating=None,
         is_recent=True,
-        created_at=datetime.datetime.now(datetime.timezone.utc)
+        year=year_v,
+        km_driven=_opt_int(kmDriven, 0, 2_000_000, "Kilometres driven"),
+        owners=_opt_int(owners, 0, 20, "Owners"),
+        registration=(registration or "").strip().upper() or None,
+        condition="new" if condition == "new" else "used",
+        status=_check_status(status_) or "available",
+        is_published=_truthy(isPublished) is not False,
+        created_at=datetime.datetime.now(datetime.timezone.utc),
     )
-
-    db.add(new_vehicle)
+    db.add(v)
     db.commit()
-    db.refresh(new_vehicle)
+    db.refresh(v)
+    after_commit_generate(_filenames(new_urls))
+    invalidate_content()
+    log_activity(db, action="VEHICLE_CREATED", actor_id=current_user.id, actor_username=current_user.username,
+                 actor_role=current_user.role, target=f"{v.brand} {v.model} ({v.id})",
+                 details=f"Price Rs {v.price} Lakhs ({v.category}); published={v.is_published}", ip=get_client_ip(request))
+    return {"success": True, "message": "Vehicle added successfully", "vehicle": v.to_dict()}
 
-    log_activity(
-        db=db,
-        actor_id=current_user.id,
-        actor_username=current_user.username,
-        actor_role=current_user.role,
-        action="VEHICLE_CREATED",
-        target=f"{new_vehicle.brand} {new_vehicle.model} ({new_vehicle.id})",
-        details=f"Added new vehicle priced at ₹{new_vehicle.price} Lakhs ({new_vehicle.category}).",
-        ip=client_ip
-    )
-
-    return {
-        "success": True,
-        "message": "Vehicle added successfully",
-        "vehicle": new_vehicle.to_dict()
-    }
-
-
-# ==========================================
-# Update Vehicle (Requires inventory:edit & pricing:edit if price changed)
-# ==========================================
 
 @router.put("/vehicles/{vehicle_id}")
 def update_vehicle(
     vehicle_id: str,
     request: Request,
-    brand: Optional[str] = Form(None),
-    model: Optional[str] = Form(None),
-    price: Optional[float] = Form(None),
-    badge: Optional[str] = Form(None),
-    type: Optional[str] = Form(None),
+    brand: Optional[str] = Form(None, max_length=100),
+    model: Optional[str] = Form(None, max_length=100),
+    price: Optional[float] = Form(None, gt=0, lt=100000),
+    badge: Optional[str] = Form(None, max_length=100),
+    type: Optional[str] = Form(None, max_length=100),
     category: Optional[str] = Form(None),
-    lifestyle: Optional[str] = Form(None),
-    fuel: Optional[str] = Form(None),
-    transmission: Optional[str] = Form(None),
-    emi: Optional[int] = Form(None),
-    seats: Optional[int] = Form(None),
-    engine: Optional[str] = Form(None),
-    power: Optional[str] = Form(None),
-    mileage: Optional[str] = Form(None),
-    description: Optional[str] = Form(None),
-    features: Optional[str] = Form(None),
-    colors: Optional[str] = Form(None),
-    imageUrls: Optional[str] = Form(None),
+    lifestyle: Optional[str] = Form(None, max_length=50),
+    fuel: Optional[str] = Form(None, max_length=50),
+    transmission: Optional[str] = Form(None, max_length=50),
+    emi: Optional[int] = Form(None, ge=0),
+    seats: Optional[int] = Form(None, ge=1, le=20),
+    engine: Optional[str] = Form(None, max_length=200),
+    power: Optional[str] = Form(None, max_length=200),
+    mileage: Optional[str] = Form(None, max_length=200),
+    description: Optional[str] = Form(None, max_length=5000),
+    features: Optional[str] = Form(None, max_length=20000),
+    colors: Optional[str] = Form(None, max_length=5000),
+    imageUrls: Optional[str] = Form(None, max_length=20000),
     replaceImages: Optional[str] = Form(None),
-    rating: Optional[float] = Form(None),
+    year: Optional[str] = Form(None),
+    kmDriven: Optional[str] = Form(None),
+    owners: Optional[str] = Form(None),
+    registration: Optional[str] = Form(None, max_length=40),
+    condition: Optional[str] = Form(None),
+    status_: Optional[str] = Form(None, alias="status"),
+    isPublished: Optional[str] = Form(None),
     photos: List[UploadFile] = File(default=[]),
     current_user: User = Depends(require_permission("inventory:edit")),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    client_ip = get_client_ip(request)
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
 
-    # Check pricing permission if price is being altered
     if price is not None and float(price) != vehicle.price:
-        user_permissions = current_user.permissions or []
-        if current_user.role != "superadmin" and "pricing:edit" not in user_permissions and "*" not in user_permissions:
-            raise HTTPException(
-                status_code=403,
-                detail='Access denied: You do not possess the "pricing:edit" permission to modify vehicle prices. Contact Super Admin.'
-            )
+        if not has_permission(current_user, "pricing:edit"):
+            raise HTTPException(status_code=403, detail='Access denied: the "pricing:edit" permission is required to change prices.')
         vehicle.price = float(price)
-
-    if brand is not None:
-        vehicle.brand = brand.strip()
-    if model is not None:
-        vehicle.model = model.strip()
-    if badge is not None:
-        vehicle.badge = badge.strip()
-    if type is not None:
-        vehicle.type = type.strip()
-    if category is not None:
-        vehicle.category = category
-    elif price is not None:
-        vehicle.category = "premium" if vehicle.price > 25 else "non-premium"
-
-    if lifestyle is not None:
-        vehicle.lifestyle = lifestyle
-    if fuel is not None:
-        vehicle.fuel = fuel
-    if transmission is not None:
-        vehicle.transmission = transmission
-    if emi is not None:
+    if emi is not None and int(emi) != vehicle.emi:
+        if not has_permission(current_user, "pricing:edit"):
+            raise HTTPException(status_code=403, detail='Access denied: the "pricing:edit" permission is required to change EMI.')
         vehicle.emi = int(emi)
+
+    if category is not None:
+        if category not in ("premium", "non-premium"):
+            raise HTTPException(status_code=400, detail="category must be premium or non-premium")
+        vehicle.category = category
+    for attr, val in (("brand", brand), ("model", model), ("badge", badge), ("type", type), ("lifestyle", lifestyle),
+                      ("fuel", fuel), ("transmission", transmission), ("engine", engine), ("power", power),
+                      ("mileage", mileage), ("description", description)):
+        if val is not None:
+            setattr(vehicle, attr, val.strip())
     if seats is not None:
         vehicle.seats = int(seats)
-    if engine is not None:
-        vehicle.engine = engine.strip()
-    if power is not None:
-        vehicle.power = power.strip()
-    if mileage is not None:
-        vehicle.mileage = mileage.strip()
-    if description is not None:
-        vehicle.description = description.strip()
-    if rating is not None:
-        vehicle.rating = float(rating)
+    this_year = datetime.date.today().year
+    if year is not None:
+        vehicle.year = _opt_int(year, 1950, this_year + 1, "Year")
+    if kmDriven is not None:
+        vehicle.km_driven = _opt_int(kmDriven, 0, 2_000_000, "Kilometres driven")
+    if owners is not None:
+        vehicle.owners = _opt_int(owners, 0, 20, "Owners")
+    if registration is not None:
+        vehicle.registration = registration.strip().upper() or None
+    if condition is not None:
+        vehicle.condition = "new" if condition == "new" else "used"
+    if status_ is not None:
+        vehicle.status = _check_status(status_)
+    if isPublished is not None:
+        vehicle.is_published = bool(_truthy(isPublished))
 
-    # Manage images
-    current_images = list(vehicle.images or [])
+    new_urls = _save_photos(db, photos, current_user)
     if replaceImages == "true":
-        current_images = []
+        # The admin sent the full, ordered list of photos to keep; new uploads go last.
+        current_images = _parse_url_list(imageUrls) + new_urls
+    else:
+        current_images = list(vehicle.images or []) + new_urls + _parse_url_list(imageUrls)
+    seen, ordered = set(), []
+    for u in current_images:  # de-duplicate while keeping order
+        if u not in seen:
+            seen.add(u)
+            ordered.append(u)
+    if len(ordered) > MAX_IMAGES_PER_VEHICLE:
+        raise HTTPException(status_code=400, detail=f"A vehicle can have at most {MAX_IMAGES_PER_VEHICLE} images")
+    vehicle.images = ordered
 
-    if photos:
-        for file in photos:
-            if file.filename:
-                current_images.append(save_uploaded_file(file))
-
-    if imageUrls:
-        try:
-            extra = json.loads(imageUrls)
-            if isinstance(extra, list):
-                current_images.extend(extra)
-        except Exception:
-            current_images.extend([s.strip() for s in imageUrls.split(",") if s.strip()])
-
-    vehicle.images = current_images
-
-    # Features
     if features is not None:
-        try:
-            vehicle.features = json.loads(features)
-        except Exception:
-            vehicle.features = [s.strip() for s in features.split("\n") if s.strip()]
-
-    # Colors
+        vehicle.features = _parse_list(features)
     if colors is not None:
-        try:
-            vehicle.colors = json.loads(colors)
-        except Exception:
-            pass
+        parsed = _parse_colors(colors)
+        if parsed is not None:
+            vehicle.colors = parsed
 
     vehicle.updated_at = datetime.datetime.now(datetime.timezone.utc)
     db.commit()
     db.refresh(vehicle)
+    after_commit_generate(_filenames(new_urls))
+    invalidate_content()
+    log_activity(db, action="VEHICLE_UPDATED", actor_id=current_user.id, actor_username=current_user.username,
+                 actor_role=current_user.role, target=f"{vehicle.brand} {vehicle.model} ({vehicle.id})",
+                 details=f"Price Rs {vehicle.price} Lakhs; status={vehicle.status}; published={vehicle.is_published}",
+                 ip=get_client_ip(request))
+    return {"success": True, "message": "Vehicle updated successfully", "vehicle": vehicle.to_dict()}
 
-    log_activity(
-        db=db,
-        actor_id=current_user.id,
-        actor_username=current_user.username,
-        actor_role=current_user.role,
-        action="VEHICLE_UPDATED",
-        target=f"{vehicle.brand} {vehicle.model} ({vehicle.id})",
-        details=f"Updated vehicle specs/price. Price: ₹{vehicle.price} Lakhs.",
-        ip=client_ip
-    )
-
-    return {
-        "success": True,
-        "message": "Vehicle updated successfully",
-        "vehicle": vehicle.to_dict()
-    }
-
-
-# ==========================================
-# Delete Vehicle (Requires inventory:delete)
-# ==========================================
 
 @router.delete("/vehicles/{vehicle_id}")
-def delete_vehicle(
-    vehicle_id: str,
-    request: Request,
-    current_user: User = Depends(require_permission("inventory:delete")),
-    db: Session = Depends(get_db)
-):
-    client_ip = get_client_ip(request)
+def delete_vehicle(vehicle_id: str, request: Request,
+                   current_user: User = Depends(require_permission("inventory:delete")),
+                   db: Session = Depends(get_db)):
     vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
-
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
-
-    brand_name = vehicle.brand
-    model_name = vehicle.model
-
-    # Cleanup local image files if any
-    for img_path in (vehicle.images or []):
-        if isinstance(img_path, str) and img_path.startswith("/uploads/"):
-            filename = os.path.basename(img_path)
-            disk_file = settings.UPLOADS_DIR / filename
-            if disk_file.exists():
-                try:
-                    disk_file.unlink()
-                except Exception as e:
-                    print(f"Could not delete image file {disk_file}: {e}")
-
+    brand_name, model_name = vehicle.brand, vehicle.model
     db.delete(vehicle)
     db.commit()
-
-    log_activity(
-        db=db,
-        actor_id=current_user.id,
-        actor_username=current_user.username,
-        actor_role=current_user.role,
-        action="VEHICLE_DELETED",
-        target=f"{brand_name} {model_name} ({vehicle_id})",
-        details="Vehicle permanently removed from showroom inventory.",
-        ip=client_ip
-    )
-
-    return {
-        "success": True,
-        "message": f"{brand_name} {model_name} deleted successfully",
-        "deletedId": vehicle_id
-    }
+    # Photos are deliberately kept: they stay in the media library (with their preserved
+    # originals) and can be removed there once nothing uses them.
+    invalidate_content()
+    log_activity(db, action="VEHICLE_DELETED", actor_id=current_user.id, actor_username=current_user.username,
+                 actor_role=current_user.role, target=f"{brand_name} {model_name} ({vehicle_id})",
+                 details="Vehicle permanently removed.", ip=get_client_ip(request))
+    return {"success": True, "message": f"{brand_name} {model_name} deleted successfully", "deletedId": vehicle_id}

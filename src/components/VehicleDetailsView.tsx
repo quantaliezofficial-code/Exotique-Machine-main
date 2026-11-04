@@ -1,538 +1,267 @@
-import React, { useState, useEffect } from 'react';
-import { Vehicle, ActivePage } from '../types';
-import { VEHICLES } from '../data';
-import { DetailsSkeleton } from './Skeleton';
-import { ArrowLeft, Share2, Compass, Shield, Zap, MessageSquare, Phone, CalendarRange, RotateCcw, Check, CheckCircle2, Heart, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Heart, Share2, Phone, MessageCircle, CalendarCheck, Landmark, Check } from 'lucide-react';
+import type { Vehicle } from '../types';
+import { Link } from '../router';
+import { api } from '../services/api';
+import { useSite, useContact, initialVehicle, formatPrice, vehicleName, whatsappLink, formatInr } from '../content';
+import { useGarage } from '../garage';
+import { brandPath, carPath } from '../lib/routes';
+import { usePageMeta } from '../lib/seo';
+import { preloadImage, srcSet, variant, isOptimisable, placeholder } from '../lib/images';
+import { Breadcrumbs, Spinner } from './ui';
+import VehicleCard from './ui/VehicleCard';
+import NotFoundView from './NotFoundView';
 
-interface VehicleDetailsViewProps {
-  vehicleId: string;
-  setActivePage: (page: ActivePage) => void;
-  onSetSelectedModelForFinance: (model: string) => void;
-  onSetSelectedModelForTestDrive: (modelId: string) => void;
-  favorites: string[];
-  toggleFavorite: (id: string) => void;
-  vehicles?: Vehicle[];
+export default function VehicleDetailsView({ vehicleId }: { vehicleId: string }) {
+  const { vehicles, vehiclesLoaded } = useSite();
+  const [vehicle, setVehicle] = useState<Vehicle | null | undefined>(
+    () => initialVehicle(vehicleId) ?? vehicles.find((v) => v.id === vehicleId),
+  );
+
+  useEffect(() => {
+    const local = initialVehicle(vehicleId) ?? vehicles.find((v) => v.id === vehicleId);
+    if (local) { setVehicle(local); return; }
+    if (!vehiclesLoaded) return;
+    let cancelled = false;
+    api.getVehicle(vehicleId).then((v) => !cancelled && setVehicle(v)).catch(() => !cancelled && setVehicle(null));
+    return () => { cancelled = true; };
+  }, [vehicleId, vehicles, vehiclesLoaded]);
+
+  if (vehicle === undefined) return <Spinner label="Loading car" />;
+  if (vehicle === null) return <NotFoundView message="This car is no longer listed. It may have been sold." />;
+  return <Details key={vehicle.id} v={vehicle} all={vehicles} />;
 }
 
-export default function VehicleDetailsView({
-  vehicleId,
-  setActivePage,
-  onSetSelectedModelForFinance,
-  onSetSelectedModelForTestDrive,
-  favorites,
-  toggleFavorite,
-  vehicles
-}: VehicleDetailsViewProps) {
-  const vehicleList = vehicles && vehicles.length > 0 ? vehicles : VEHICLES;
-  // Find vehicle or default to first
-  const vehicle = vehicleList.find(v => v.id === vehicleId) || vehicleList[0];
+function Details({ v, all }: { v: Vehicle; all: Vehicle[] }) {
+  const contact = useContact();
+  const { favorites, toggleFavorite } = useGarage();
+  const name = vehicleName(v);
+  const full = `${name} ${v.badge && v.badge !== v.model ? v.badge : ''}`.trim();
+  const sold = v.status === 'sold';
+  const [copied, setCopied] = useState(false);
+  usePageMeta({
+    title: sold ? `Sold: ${full}` : `Used ${full} for sale in Lucknow`,
+    description: `${full} at Exotique Machines, Lucknow. ${[v.fuel, v.transmission, v.engine, formatPrice(v.price)].filter(Boolean).join(', ')}.`,
+    path: carPath(v.id),
+  });
 
-  const colors = (vehicle.colors && vehicle.colors.length > 0)
-    ? vehicle.colors
-    : [{ name: 'Obsidian Black', hex: '#1C1917' }, { name: 'Glacier Silver', hex: '#E5E7EB' }];
+  const similar = useMemo(
+    () => all.filter((x) => x.id !== v.id && x.status !== 'sold')
+      .sort((a, b) => Number(b.brand === v.brand) - Number(a.brand === v.brand) || Math.abs(a.price - v.price) - Math.abs(b.price - v.price))
+      .slice(0, 3),
+    [all, v],
+  );
 
-  const images = (vehicle.images && vehicle.images.length > 0)
-    ? vehicle.images
-    : ['/logo.png'];
+  const facts = [
+    ['Year', v.year], ['Kilometres', v.kmDriven ? `${v.kmDriven.toLocaleString('en-IN')} km` : null],
+    ['Owners', v.owners ? (v.owners === 1 ? '1st owner' : `${v.owners} owners`) : null], ['Fuel', v.fuel],
+    ['Transmission', v.transmission], ['Registration', v.registration],
+  ].filter(([, val]) => val) as [string, React.ReactNode][];
+  const specs = [
+    ['Engine', v.engine], ['Power', v.power], ['Mileage / range', v.mileage], ['Seats', v.seats], ['Body type', v.lifestyle],
+    ['Condition', v.condition === 'new' ? 'New' : 'Pre-owned'],
+  ].filter(([, val]) => val) as [string, React.ReactNode][];
 
-  const features = vehicle.features || [];
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [is360Mode, setIs360Mode] = useState(false);
-  const [rotationIndex, setRotationIndex] = useState(0); // 0-3 slider for 360 view
-  const [selectedColor, setSelectedColor] = useState(colors[0]);
-  const [isEnquirySuccess, setIsEnquirySuccess] = useState(false);
-  const [enquiryName, setEnquiryName] = useState('');
-  const [enquiryPhone, setEnquiryPhone] = useState('');
-
-  // Reset states when vehicleId changes
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 400);
-
-    setActiveImageIndex(0);
-    setIs360Mode(false);
-    setRotationIndex(0);
-    setSelectedColor(colors[0]);
-    setIsEnquirySuccess(false);
-    setEnquiryName('');
-    setEnquiryPhone('');
-
-    return () => clearTimeout(timer);
-  }, [vehicleId, vehicle]);
-
-  const handleNextImage = () => {
-    if (images.length <= 1) return;
-    setActiveImageIndex((prev) => (prev + 1) % images.length);
+  const share = async () => {
+    const url = window.location.origin + carPath(v.id);
+    try {
+      if (navigator.share) await navigator.share({ title: full, url });
+      else { await navigator.clipboard.writeText(url); setCopied(true); window.setTimeout(() => setCopied(false), 2000); }
+    } catch { /* cancelled */ }
   };
+  const enquire = () => window.dispatchEvent(new CustomEvent('em:enquire', { detail: { car: full } }));
+  const isFav = favorites.includes(v.id);
 
-  const handlePrevImage = () => {
-    if (images.length <= 1) return;
-    setActiveImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
+  return (
+    <div id="vehicle-details-view">
+      <div className="page-container pt-6">
+        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'All cars', to: '/cars' }, { label: v.brand, to: brandPath(v.brand) }, { label: name }]} />
+      </div>
+      {/* One summary in the DOM. Mobile order: gallery → summary → details; desktop puts
+          the summary in a sticky right column. */}
+      <div className="page-container grid gap-8 pb-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:grid-rows-[auto_1fr]">
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
+          <Gallery images={v.images || []} alt={full} />
+        </div>
+        <aside className="lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <div className="lg:sticky lg:top-24"><Summary /></div>
+        </aside>
+        <div className="min-w-0 space-y-8 lg:col-start-1 lg:row-start-2">
+          {v.description && (
+            <section aria-labelledby="about-car">
+              <h2 id="about-car" className="text-xl font-bold text-stone-900">About this car</h2>
+              <p className="mt-3 max-w-prose whitespace-pre-line text-sm leading-relaxed text-stone-700">{v.description}</p>
+            </section>
+          )}
+          <section aria-labelledby="specs">
+            <h2 id="specs" className="text-xl font-bold text-stone-900">Specifications</h2>
+            <dl className="mt-4 grid gap-px overflow-hidden rounded-xl border border-stone-200 bg-stone-200 sm:grid-cols-2">
+              {[...facts, ...specs].map(([k, val]) => (
+                <div key={k} className="flex justify-between gap-4 bg-white px-4 py-3 text-sm">
+                  <dt className="text-stone-600">{k}</dt>
+                  <dd className="text-right font-semibold text-stone-900">{val}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+          {v.features?.length > 0 && (
+            <section aria-labelledby="features">
+              <h2 id="features" className="text-xl font-bold text-stone-900">Features</h2>
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                {v.features.map((f) => (
+                  <li key={f} className="flex gap-2 text-sm text-stone-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" aria-hidden />{f}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {v.colors?.length > 0 && (
+            <section aria-labelledby="colours">
+              <h2 id="colours" className="text-xl font-bold text-stone-900">Colour</h2>
+              <ul className="mt-3 flex flex-wrap gap-3">
+                {v.colors.map((c) => (
+                  <li key={c.name} className="flex items-center gap-2 text-sm text-stone-700">
+                    <span className="h-6 w-6 rounded-full border border-stone-300" style={{ background: c.hex }} aria-hidden />{c.name}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      </div>
 
-  // Keyboard navigation for photo carousel
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (is360Mode) return;
-      if (e.key === 'ArrowRight') handleNextImage();
-      if (e.key === 'ArrowLeft') handlePrevImage();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [images.length, is360Mode]);
+      {similar.length > 0 && (
+        <section className="border-t border-stone-200 bg-white py-12" aria-labelledby="similar">
+          <div className="page-container">
+            <h2 id="similar" className="section-title">Similar cars</h2>
+            <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {similar.map((s) => <li key={s.id}><VehicleCard vehicle={s} isFavorite={favorites.includes(s.id)} onToggleFavorite={toggleFavorite} /></li>)}
+            </ul>
+          </div>
+        </section>
+      )}
+    </div>
+  );
 
-  if (isLoading) {
+  function Summary() {
     return (
-      <div className="bg-[#FAFAF9] text-stone-900 min-h-screen py-12 font-sans">
-        <DetailsSkeleton />
+      <div className="card p-5 sm:p-6">
+        <p className="eyebrow">{v.brand}</p>
+        <h1 className="mt-1 text-2xl font-black leading-tight text-stone-900">{name}</h1>
+        {v.badge && v.badge !== v.model && <p className="text-sm text-stone-600">{v.badge}</p>}
+        {sold ? (
+          <p className="mt-4 inline-block rounded bg-stone-900 px-3 py-1 text-sm font-bold text-white">This car has been sold</p>
+        ) : (
+          <>
+            <p className="mt-4 text-3xl font-black text-stone-900">{formatPrice(v.price)}</p>
+            {v.emi > 0 && <p className="text-sm text-stone-600">EMI from {formatInr(v.emi)}/month*</p>}
+            {v.status === 'reserved' && <p className="mt-2 badge bg-amber-100 text-amber-900">Reserved</p>}
+          </>
+        )}
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {facts.slice(0, 4).map(([k, val]) => <li key={k} className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">{val}</li>)}
+        </ul>
+        <div className="mt-6 grid gap-2">
+          {!sold && (
+            <>
+              <Link to={`/test-drive?car=${encodeURIComponent(v.id)}`} className="btn btn-primary w-full"><CalendarCheck className="h-4 w-4" aria-hidden />Book a test drive</Link>
+              <Link to={`/finance?car=${encodeURIComponent(v.id)}`} className="btn btn-secondary w-full"><Landmark className="h-4 w-4" aria-hidden />Check finance &amp; EMI</Link>
+            </>
+          )}
+          <button type="button" onClick={enquire} className="btn btn-secondary w-full">{sold ? 'Find me a similar car' : 'Enquire about this car'}</button>
+          <div className="grid grid-cols-2 gap-2">
+            {contact?.phones[0] && <a href={`tel:${contact.phones[0].number}`} className="btn btn-ghost border border-stone-200"><Phone className="h-4 w-4" aria-hidden />Call</a>}
+            {contact?.whatsapp && (
+              <a href={whatsappLink(contact.whatsapp, `Hi, I'm interested in the ${full} (${window.location.origin}${carPath(v.id)})`)} target="_blank" rel="noopener" className="btn btn-ghost border border-stone-200">
+                <MessageCircle className="h-4 w-4 text-emerald-700" aria-hidden />WhatsApp
+              </a>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => toggleFavorite(v.id)} aria-pressed={isFav} className="btn btn-ghost">
+              <Heart className={`h-4 w-4 ${isFav ? 'fill-red-600 text-red-600' : ''}`} aria-hidden />{isFav ? 'Saved' : 'Save'}
+            </button>
+            <button type="button" onClick={share} className="btn btn-ghost"><Share2 className="h-4 w-4" aria-hidden />{copied ? 'Link copied' : 'Share'}</button>
+          </div>
+        </div>
+        <p className="mt-4 text-xs leading-relaxed text-stone-500">*EMI is indicative and depends on the lender, down payment and tenure.</p>
       </div>
     );
   }
+}
 
-  // Handle color picker change
-  const handleColorSelect = (color: typeof vehicle.colors[0]) => {
-    setSelectedColor(color);
-  };
+/**
+ * Only the visible photo is downloaded; the next and previous ones are preloaded so
+ * swiping feels instant. Thumbnails are small (320 px) and lazy.
+ */
+function Gallery({ images, alt }: { images: string[]; alt: string }) {
+  const [i, setI] = useState(0);
+  const touch = useRef<number | null>(null);
+  const n = images.length;
+  const go = (d: number) => setI((x) => (x + d + n) % n);
 
-  const handleCustomiseFinance = () => {
-    onSetSelectedModelForFinance(`${vehicle.brand} ${vehicle.model}`);
-    setActivePage('finance');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  useEffect(() => {
+    if (n < 2) return;
+    preloadImage(images[(i + 1) % n], 1280);
+    preloadImage(images[(i - 1 + n) % n], 1280);
+  }, [i, n, images]);
 
-  const handleBookTestDrive = () => {
-    onSetSelectedModelForTestDrive(vehicle.id);
-    setActivePage('testdrive');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleWhatsAppSimulation = () => {
-    const text = encodeURIComponent(`Hello Exotique Machines. I'm interested in booking a test drive for the ${vehicle.brand} ${vehicle.model} (${selectedColor.name} color).`);
-    window.open(`https://wa.me/916390000976?text=${text}`, '_blank');
-  };
-
-  const handleQuickEnquirySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!enquiryName || !enquiryPhone) return;
-    setIsEnquirySuccess(true);
-    setTimeout(() => {
-      setIsEnquirySuccess(false);
-      setEnquiryName('');
-      setEnquiryPhone('');
-    }, 4000);
-  };
-
+  if (!n) return <div className="flex aspect-[16/10] items-center justify-center rounded-xl bg-stone-200 text-sm text-stone-500">Photos coming soon</div>;
+  const src = images[i];
+  const blur = placeholder(src);
   return (
-    <div className="bg-[#FAFAF9] text-stone-900 min-h-screen py-12 font-sans" id="vehicle-details-view">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Back navigation & Share */}
-        <div className="flex justify-between items-center mb-8 border-b border-stone-200 pb-5">
-          <button
-            onClick={() => {
-              setActivePage('inventory');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="flex items-center space-x-2 text-sm text-stone-500 hover:text-amber-700 font-semibold transition-colors cursor-pointer"
-            id="btn-details-back-to-inventory"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Inventory Showroom</span>
-          </button>
-          
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => toggleFavorite(vehicle.id)}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-stone-200 hover:border-amber-600 text-xs font-semibold text-stone-600 rounded hover:text-amber-700 transition-all active:scale-95 shadow-sm cursor-pointer"
-              title={favorites.includes(vehicle.id) ? "Remove from Garage" : "Bookmark Vehicle"}
-            >
-              <Heart className={`w-3.5 h-3.5 ${favorites.includes(vehicle.id) ? 'text-red-500 fill-current' : ''}`} />
-              <span>{favorites.includes(vehicle.id) ? 'Bookmarked' : 'Bookmark'}</span>
+    <div>
+      <div
+        className="relative aspect-[16/10] overflow-hidden rounded-xl bg-stone-200"
+        style={blur ? { backgroundImage: `url("${blur}")`, backgroundSize: 'cover' } : undefined}
+        onKeyDown={(e) => { if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); }}
+        onTouchStart={(e) => { touch.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (touch.current === null) return;
+          const dx = e.changedTouches[0].clientX - touch.current;
+          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+          touch.current = null;
+        }}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label={`Photos of ${alt}`}
+        tabIndex={0}
+      >
+        {isOptimisable(src) ? (
+          <picture key={src}>
+            <source type="image/avif" srcSet={srcSet(src, 'avif', [640, 960, 1280, 1920])} sizes="(min-width: 1024px) 60vw, 100vw" />
+            <source type="image/webp" srcSet={srcSet(src, 'webp', [640, 960, 1280, 1920])} sizes="(min-width: 1024px) 60vw, 100vw" />
+            <img src={variant(src, 1280)} alt={`${alt}, photo ${i + 1} of ${n}`} className="h-full w-full object-cover fade-in"
+              onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+              fetchPriority={i === 0 ? 'high' : 'auto'} decoding={i === 0 ? 'sync' : 'async'} width={1280} height={800} />
+          </picture>
+        ) : (
+          <img key={src} src={src} alt={`${alt}, photo ${i + 1} of ${n}`} className="h-full w-full object-cover fade-in" />
+        )}
+        {n > 1 && (
+          <>
+            <button type="button" onClick={() => go(-1)} className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-stone-900 shadow hover:bg-white" aria-label="Previous photo">
+              <ChevronLeft className="h-5 w-5" />
             </button>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                alert('Showroom link copied to clipboard!');
-              }}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-stone-200 hover:border-amber-600 text-xs font-semibold text-stone-600 rounded hover:text-amber-700 transition-all shadow-sm cursor-pointer"
-              title="Share Link"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Share Vehicle</span>
+            <button type="button" onClick={() => go(1)} className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-stone-900 shadow hover:bg-white" aria-label="Next photo">
+              <ChevronRight className="h-5 w-5" />
             </button>
-          </div>
-        </div>
-
-        {/* Core Layout Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          
-          {/* Left Side: Images stage, rotation, thumbnails */}
-          <div className="lg:col-span-7 space-y-6">
-            
-            {/* Main Stage Card */}
-            <div className="relative bg-stone-950 border border-stone-800 rounded-2xl p-2 sm:p-3 overflow-hidden aspect-[16/10] w-full flex items-center justify-center shadow-md">
-              
-              {/* Highlight Overlay badge */}
-              <div className="absolute top-4 left-4 z-10">
-                <span className="px-2.5 py-1 bg-stone-900/90 text-amber-400 text-[10px] font-bold tracking-widest uppercase rounded border border-amber-500/20 flex items-center space-x-1.5 shadow-sm">
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>{is360Mode ? 'Interactive 360° Rotator' : 'Studio Photography'}</span>
-                </span>
-              </div>
-
-              {/* 360° Toggle */}
-              <div className="absolute top-4 right-4 z-10">
-                <button
-                  onClick={() => setIs360Mode(!is360Mode)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase transition-all flex items-center space-x-1.5 shadow-md cursor-pointer ${
-                    is360Mode
-                      ? 'bg-amber-600 text-white border border-amber-600 font-extrabold'
-                      : 'bg-white/95 text-stone-600 hover:text-stone-900 border border-stone-200'
-                  }`}
-                  id="details-toggle-360"
-                >
-                  <RotateCcw className={`w-3.5 h-3.5 ${is360Mode ? 'animate-spin' : ''}`} />
-                  <span>360° View</span>
-                </button>
-              </div>
-
-              {/* Main Image Renderer */}
-              <div 
-                className={`w-full h-full rounded-xl overflow-hidden flex items-center justify-center bg-stone-950 ${!is360Mode && images.length > 1 ? 'cursor-pointer' : ''}`}
-                onClick={!is360Mode ? handleNextImage : undefined}
-                title={!is360Mode && images.length > 1 ? "Click to view next photo" : undefined}
-              >
-                <img
-                  src={is360Mode ? (images[rotationIndex] || images[0]) : (images[activeImageIndex] || images[0])}
-                  alt={`${vehicle.brand} ${vehicle.model} View`}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover object-center transition-all duration-300"
-                  id="main-stage-image"
-                />
-              </div>
-
-              {/* Prev / Next Photo Navigation Buttons */}
-              {!is360Mode && images.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePrevImage();
-                    }}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/55 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-xl group cursor-pointer"
-                    title="Previous Photo (Left Arrow)"
-                    aria-label="Previous Photo"
-                    id="details-btn-prev-photo"
-                  >
-                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 group-hover:-translate-x-0.5 transition-transform" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNextImage();
-                    }}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/55 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all hover:scale-110 active:scale-95 shadow-xl group cursor-pointer"
-                    title="Next Photo (Right Arrow)"
-                    aria-label="Next Photo"
-                    id="details-btn-next-photo"
-                  >
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-
-                  {/* Photo Counter Badge */}
-                  <div className="absolute bottom-3.5 right-3.5 z-10 pointer-events-none">
-                    <span className="px-2.5 py-1 bg-black/75 backdrop-blur-md text-white text-[11px] font-mono font-bold tracking-wider rounded-md border border-white/15 flex items-center space-x-1.5 shadow-md">
-                      <Camera className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{activeImageIndex + 1} / {images.length}</span>
-                    </span>
-                  </div>
-                </>
-              )}
-
-              {/* Slider for 360 degree rotation (simulated) */}
-              {is360Mode && (
-                <div className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-lg p-3 border border-stone-200 text-center space-y-1.5 z-20 shadow-lg">
-                  <span className="text-[10px] uppercase font-mono tracking-widest text-amber-800 font-bold">Drag to Orbit Vehicle</span>
-                  <input
-                    type="range"
-                    min="0"
-                    max={Math.max(1, images.length - 1)}
-                    step="1"
-                    value={rotationIndex}
-                    onChange={(e) => setRotationIndex(Number(e.target.value))}
-                    className="w-full accent-amber-600 h-1 bg-stone-100 rounded-lg cursor-ew-resize"
-                  />
-                  <div className="flex justify-between text-[9px] text-stone-400 font-mono">
-                    <span>Front Profile</span>
-                    <span>Cabin Angle</span>
-                    <span>Side Detail</span>
-                    <span>Rear Stance</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Thumbnail Navigation (Compact & Sleek) */}
-            {!is360Mode && (
-              <div className="flex gap-2 sm:gap-2.5 overflow-x-auto pb-1 pt-0.5 custom-scrollbar" id="thumbnails-gallery">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setActiveImageIndex(idx)}
-                    className={`relative shrink-0 w-20 sm:w-24 md:w-26 h-13 sm:h-15 md:h-16 bg-stone-950 border rounded-lg overflow-hidden transition-all cursor-pointer ${
-                      activeImageIndex === idx
-                        ? 'border-amber-600 ring-2 ring-amber-600/40 shadow-sm scale-102 opacity-100'
-                        : 'border-stone-200 opacity-65 hover:opacity-100 hover:border-stone-400'
-                    }`}
-                    title={`View photo ${idx + 1}`}
-                  >
-                    <img src={img} alt={`Thumbnail ${idx + 1}`} referrerPolicy="no-referrer" className="w-full h-full object-cover object-center" />
-                    <span className="absolute bottom-0.5 right-1 text-[8px] font-mono font-bold text-white bg-black/70 px-1 rounded">
-                      {idx + 1}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Custom Color Picker Section */}
-            <div className="bg-white border border-stone-200 rounded-xl p-6 space-y-4 shadow-sm">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">
-                Bespoke Exterior Shade Selection
-              </h3>
-              <p className="text-xs text-stone-500 font-light">
-                Configure your paint scheme. Our robotic coating labs customize finish layering on order.
-              </p>
-              
-              <div className="flex flex-wrap gap-4 items-center">
-                <div className="flex space-x-3">
-                  {colors.map((color, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleColorSelect(color)}
-                      style={{ backgroundColor: color.hex }}
-                      className={`w-9 h-9 rounded-full relative transition-all duration-300 focus:outline-none cursor-pointer ${
-                        selectedColor.name === color.name
-                          ? 'ring-2 ring-amber-600 ring-offset-2 ring-offset-[#FAFAF9] scale-110 shadow-lg'
-                          : 'opacity-85 hover:opacity-100'
-                      }`}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-                <div className="border-l border-stone-200 pl-4">
-                  <span className="text-[10px] text-stone-400 uppercase font-semibold">Active Shade</span>
-                  <p className="text-sm font-bold text-amber-805 mt-0.5">{selectedColor.name}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Vehicle Mechanical Description & Core Tech */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-stone-900 uppercase tracking-wider border-b border-stone-200 pb-2">
-                Showroom Description
-              </h3>
-              <p className="text-sm text-stone-600 leading-relaxed font-light">
-                {vehicle.description}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="border border-stone-200 bg-white rounded-lg p-4 space-y-2 shadow-sm">
-                  <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center space-x-1.5">
-                    <Shield className="w-4 h-4 text-amber-700" />
-                    <span>Safety Assurance Matrix</span>
-                  </h4>
-                  <p className="text-xs text-stone-500 leading-relaxed">
-                    Standard crash mitigation, dual side curtains, segment-leading steel layout, ISOFIX child support anchors, and ESC traction diagnostics.
-                  </p>
-                </div>
-
-                <div className="border border-stone-200 bg-white rounded-lg p-4 space-y-2 shadow-sm">
-                  <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center space-x-1.5">
-                    <Compass className="w-4 h-4 text-amber-700" />
-                    <span>Infotainment Systems</span>
-                  </h4>
-                  <p className="text-xs text-stone-500 leading-relaxed">
-                    Custom OTA updates, voice command assists, real-time navigation grids, integrated smartphone screen streaming, and high fidelity acoustics.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Side: Sticky Pricing Card & Quick Forms */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Main Spec Sticky pricing card */}
-            <div className="bg-white border border-stone-200 rounded-xl p-6 space-y-6 sticky top-24 shadow-md" id="specs-pricing-sticky-card">
-              
-              {/* Header block */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 bg-amber-50 text-amber-850 text-[10px] font-bold uppercase tracking-wider rounded border border-amber-200 shadow-sm">
-                    {vehicle.badge} Model
-                  </span>
-                  <span className="text-xs font-mono text-stone-400">{vehicle.type}</span>
-                </div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-900 mt-1.5">{vehicle.brand} {vehicle.model}</h1>
-                <p className="text-xs text-stone-500 mt-1">Configure bespoke customisations below. Delivery within 14 calendar days.</p>
-              </div>
-
-              {/* Price Block */}
-              <div className="bg-stone-50 border border-stone-200/80 rounded-lg p-4 flex justify-between items-center">
-                <div>
-                  <span className="text-[10px] text-stone-400 uppercase font-semibold block">Ex-Showroom Price</span>
-                  <span className="text-2xl sm:text-3xl font-black text-amber-850">₹ {vehicle.price.toFixed(2)} Lakh*</span>
-                </div>
-                <div className="text-right border-l border-stone-200 pl-4">
-                  <span className="text-[10px] text-stone-400 uppercase font-semibold block">Estimated Monthly EMI</span>
-                  <span className="text-sm font-extrabold text-stone-850">₹{vehicle.emi.toLocaleString()}/mo</span>
-                  <button
-                    onClick={handleCustomiseFinance}
-                    className="block text-[11px] text-amber-700 hover:text-amber-800 font-semibold underline mt-0.5 transition-all text-right w-full cursor-pointer"
-                  >
-                    Customise Finance →
-                  </button>
-                </div>
-              </div>
-
-              {/* Mechanical Diagnostics Grid */}
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="bg-stone-50 p-3 rounded border border-stone-200">
-                  <span className="text-stone-400 block">Fuel Configuration</span>
-                  <span className="font-bold text-stone-800 mt-0.5 block text-sm">{vehicle.fuel}</span>
-                </div>
-                <div className="bg-stone-50 p-3 rounded border border-stone-200">
-                  <span className="text-stone-400 block">Transmission</span>
-                  <span className="font-bold text-stone-800 mt-0.5 block text-sm">{vehicle.transmission}</span>
-                </div>
-                <div className="bg-stone-50 p-3 rounded border border-stone-200">
-                  <span className="text-stone-400 block">Engine / Displacement</span>
-                  <span className="font-semibold text-stone-800 mt-0.5 block truncate" title={vehicle.engine}>{vehicle.engine}</span>
-                </div>
-                <div className="bg-stone-50 p-3 rounded border border-stone-200">
-                  <span className="text-stone-400 block">Peak Power Capacity</span>
-                  <span className="font-semibold text-stone-800 mt-0.5 block truncate" title={vehicle.power}>{vehicle.power}</span>
-                </div>
-                <div className="bg-stone-50 p-3 rounded border border-stone-200">
-                  <span className="text-stone-400 block">Seating Capacity</span>
-                  <span className="font-bold text-stone-800 mt-0.5 block text-sm">{vehicle.seats} Seater</span>
-                </div>
-                <div className="bg-stone-50 p-3 rounded border border-stone-200">
-                  <span className="text-stone-400 block">ARAI Efficiency Range</span>
-                  <span className="font-bold text-amber-700 mt-0.5 block text-sm">{vehicle.mileage}</span>
-                </div>
-              </div>
-
-              {/* Key Features bullet points */}
-              <div className="space-y-2.5">
-                <h4 className="text-[11px] font-bold uppercase tracking-widest text-stone-400">Key Premium Features</h4>
-                <ul className="text-xs text-stone-600 space-y-2">
-                  {features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start space-x-2">
-                      <Check className="w-3.5 h-3.5 text-amber-600 mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Actions Button Stack */}
-              <div className="space-y-3 pt-3 border-t border-stone-200">
-                <button
-                  onClick={handleBookTestDrive}
-                  className="w-full py-4 bg-stone-900 hover:bg-stone-850 text-white font-bold tracking-wider uppercase text-xs rounded-md shadow-lg shadow-stone-900/10 transition-all flex items-center justify-center space-x-2 cursor-pointer"
-                  id="details-btn-testdrive"
-                >
-                  <CalendarRange className="w-4 h-4" />
-                  <span>Book VIP Test Drive</span>
-                </button>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={handleWhatsAppSimulation}
-                    className="py-3 bg-emerald-50 border border-emerald-200 hover:border-emerald-400 text-emerald-700 hover:bg-emerald-100/30 text-xs font-bold uppercase tracking-wider rounded transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
-                    id="details-btn-whatsapp"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>WhatsApp</span>
-                  </button>
-
-                  <button
-                    onClick={() => alert('Exotique Direct Hotline: Connecting you to our Lucknow showroom concierge. Call: +91 9151911150')}
-                    className="py-3 bg-white border border-stone-200 hover:border-amber-600 text-stone-700 hover:text-amber-800 text-xs font-bold uppercase tracking-wider rounded transition-all flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
-                    id="details-btn-call"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span>Call Showroom</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Inquiry Form */}
-            <div className="bg-white border border-stone-200 rounded-xl p-6 space-y-4 shadow-sm">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900">
-                Request Callback Offer
-              </h3>
-              
-              {isEnquirySuccess ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center text-amber-800 space-y-2">
-                  <CheckCircle2 className="w-8 h-8 mx-auto text-amber-600" />
-                  <p className="text-xs font-bold uppercase tracking-wider">Inquiry Submitted Successfully</p>
-                  <p className="text-[10px] text-stone-500 leading-relaxed">Our premium concierge will reach out on your phone via Call/WhatsApp shortly.</p>
-                </div>
-              ) : (
-                <form onSubmit={handleQuickEnquirySubmit} className="space-y-3.5">
-                  <div>
-                    <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">Full Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={enquiryName}
-                      onChange={(e) => setEnquiryName(e.target.value)}
-                      placeholder="e.g. Rahul Sharma"
-                      className="w-full bg-stone-50 border border-stone-200 rounded px-3 py-2 text-xs text-stone-800 focus:border-amber-600 focus:outline-none focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-stone-400 uppercase mb-1">Mobile Number</label>
-                    <div className="flex">
-                      <span className="bg-stone-100 border border-stone-200 text-stone-500 px-2.5 py-2 text-xs rounded-l font-mono flex items-center">
-                        +91
-                      </span>
-                      <input
-                        type="tel"
-                        required
-                        pattern="[6-9][0-9]{9}"
-                        value={enquiryPhone}
-                        onChange={(e) => setEnquiryPhone(e.target.value)}
-                        placeholder="10-digit number"
-                        className="w-full bg-stone-50 border border-stone-200 border-l-0 rounded-r px-3 py-2 text-xs text-stone-800 focus:border-amber-600 focus:outline-none focus:bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white rounded text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    Request Callback
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
+            <span className="absolute bottom-3 right-3 rounded-full bg-stone-950/70 px-2.5 py-1 font-mono text-xs text-white" aria-live="polite">{i + 1} / {n}</span>
+          </>
+        )}
       </div>
+      {n > 1 && (
+        <ul className="mt-3 flex gap-2 overflow-x-auto pb-1 no-scrollbar" aria-label="Choose a photo">
+          {images.map((img, idx) => (
+            <li key={img} className="shrink-0">
+              <button type="button" onClick={() => setI(idx)} aria-label={`Show photo ${idx + 1}`} aria-current={idx === i}
+                className={`block h-14 w-20 overflow-hidden rounded-md border-2 sm:h-16 sm:w-24 ${idx === i ? 'border-stone-900' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                <img src={variant(img, 320)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" width={96} height={64}
+                  onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
