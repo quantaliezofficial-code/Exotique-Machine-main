@@ -3,7 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import type { SiteSettings, HomeSection, VideoClip } from '../../types';
 import { api } from '../../services/api';
 import { Field } from '../ui';
-import { PanelHeader, MoveButtons, moveItem, useAction, useAdmin, ImageField, VideoField } from './ui';
+import { PanelHeader, MoveButtons, moveItem, useAction, useAdmin, ImageField, VideoField, BuiltinVideos } from './ui';
 
 type Key = keyof SiteSettings;
 interface Meta { hasUnpublishedChanges: boolean; updatedBy?: string; publishedBy?: string; publishedAt?: string }
@@ -211,6 +211,7 @@ function HomepageForm({ value, onChange }: { value: SiteSettings['homepage']; on
         {stories.length < 12 && (
           <div className="mt-3"><VideoField label="Add a story" value={null} onChange={(v) => v && onChange({ ...value, videoStories: [...stories, v] })} /></div>
         )}
+        <BuiltinVideos kind="story" used={stories} room={12 - stories.length} onAdd={(c) => onChange({ ...value, videoStories: [...stories, ...c] })} />
       </fieldset>
 
       <fieldset className="rounded-lg border border-stone-200 p-4">
@@ -294,6 +295,7 @@ function GeneralForm({ value, onChange }: { value: SiteSettings['general']; onCh
         {aboutClips.length < 6 && (
           <div className="mt-3"><VideoField label={aboutClips.length ? 'Add another video' : 'Add the intro video'} value={null} onChange={(v) => v && setAboutClips([...aboutClips, v])} /></div>
         )}
+        <BuiltinVideos kind={aboutClips.length ? 'any' : 'intro'} used={aboutClips} room={6 - aboutClips.length} onAdd={(c) => setAboutClips([...aboutClips, ...c])} />
         <label className="mt-4 flex items-center gap-2 text-sm text-stone-800">
           <input type="checkbox" className="h-4 w-4 accent-stone-900" checked={value.aboutStories !== false}
             onChange={(e) => onChange({ ...value, aboutStories: e.target.checked })} />

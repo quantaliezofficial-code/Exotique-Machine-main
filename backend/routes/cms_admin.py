@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from backend.cms.defaults import DEFAULT_SETTINGS
 from backend.cms.images import store_image, delete_image_files, schedule_variants, mark_variants_ready, parse_crop_list
 from backend.cms.media_registry import register_media
+from backend.cms.builtin_videos import catalogue
 from backend.cms.videos import VIDEO_URL_RE, store_poster, store_video
 from backend.cms.references import find_references
 from backend.cms.service import (
@@ -644,6 +645,12 @@ def list_media(folder: Optional[str] = None, q: Optional[str] = None, with_usage
             d["usage"] = find_references(db, r.url)
         items.append(d)
     return {"media": items}
+
+
+@router.get("/videos/builtin")
+def builtin_videos_list(user: User = Depends(require_permission("cms:media"))):
+    """Videos that ship with the site, for "Built-in videos" in the settings editors."""
+    return {"videos": catalogue()}
 
 
 @router.post("/videos/upload", status_code=201)

@@ -416,3 +416,34 @@ def test_video_upload_rejects_non_video_and_bad_settings(owner):
     ok = {"src": "/uploads/videos/a.mp4", "poster": ""}
     assert owner.put("/api/admin/site-settings/general", json={**g, "aboutVideos": [ok] * 7}, headers=XHR).status_code == 400
     assert owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": [ok] * 13}, headers=XHR).status_code == 400
+
+
+def test_builtin_videos_ship_with_the_site(owner):
+    import pathlib
+    from backend.cms.builtin_videos import BUILTIN_VIDEOS
+    from backend.cms.defaults import DEFAULT_SETTINGS
+    from backend.cms.videos import VIDEO_URL_RE
+    public = pathlib.Path(__file__).resolve().parents[2] / "public"
+    for v in BUILTIN_VIDEOS:  # every listed file exists in the frontend build input
+        assert VIDEO_URL_RE.match(v["src"])
+        assert (public / v["src"].lstrip("/")).is_file() and (public / v["poster"].lstrip("/")).is_file()
+    assert [c["src"] for c in DEFAULT_SETTINGS["general"]["aboutVideos"]] == [v["src"] for v in BUILTIN_VIDEOS if v["kind"] == "intro"]
+    assert len(DEFAULT_SETTINGS["homepage"]["videoStories"]) == 4
+    r = owner.get("/api/admin/videos/builtin")
+    assert r.status_code == 200 and len(r.json()["videos"]) == 5
+    # a built-in clip is accepted in settings and appears in the server-rendered page
+    hp = owner.get("/api/admin/site-settings").json()["draft"]["homepage"]
+    clip = {**r.json()["videos"][1]["clip"], "name": "R. Singh", "car": "BMW X1"}
+    assert owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": [clip]}, headers=XHR).status_code == 200
+    owner.post("/api/admin/site-settings/publish", json={"keys": ["homepage"]}, headers=XHR)
+    html = owner.get("/__seo/").text
+    assert "R. Singh on buying a BMW X1" in html and v["src"].rsplit("/", 1)[0] in html
+    owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": []}, headers=XHR)
+    owner.post("/api/admin/site-settings/publish", json={"keys": ["homepage"]}, headers=XHR)
+
+
+def test_builtin_videos_need_staff():
+    from fastapi.testclient import TestClient
+    from backend.main import app
+    with TestClient(app, base_url="http://testserver") as anon:  # no session cookie
+        assert anon.get("/api/admin/videos/builtin").status_code in (401, 403)

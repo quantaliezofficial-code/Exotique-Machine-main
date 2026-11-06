@@ -4,6 +4,7 @@ Every value here is taken from content that was already live on the site (footer
 header, home page, service page and finance FAQ) so the first deploy looks the same. The
 owner can change all of it from Admin → Website → Settings.
 """
+from backend.cms.builtin_videos import builtin
 
 DEFAULT_SETTINGS = {
     "general": {
@@ -26,7 +27,7 @@ DEFAULT_SETTINGS = {
         "announcement": {"enabled": False, "text": "", "link": ""},
         # About page videos (Admin → Settings → General). The first is the showroom intro
         # shown beside the text; any others appear as a row underneath.
-        "aboutVideos": [],
+        "aboutVideos": builtin("intro"),
         # Also show the customer video stories (Homepage settings) on the About page.
         "aboutStories": True,
     },
@@ -134,7 +135,7 @@ DEFAULT_SETTINGS = {
         ],
         # Customer video stories (vertical reels). Each: src (/uploads/videos/…mp4), poster,
         # name, caption, car, transcript, plus duration/size/uploadedAt from the upload.
-        "videoStories": [],
+        "videoStories": builtin("story"),
         # Moving text band (React Bits "Scroll Velocity"). Each line scrolls in the opposite
         # direction to the one above; brandLine adds a line of the brands in stock.
         "velocity": {"lines": ["Certified · Inspected · Delivered"], "brandLine": True},

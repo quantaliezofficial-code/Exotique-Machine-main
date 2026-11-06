@@ -284,3 +284,47 @@ export function VideoField({ label, value, onChange, hint }: {
     </div>
   );
 }
+
+interface BuiltinVideo { id: string; kind: 'intro' | 'story'; label: string; clip: VideoClip }
+let builtinCache: Promise<BuiltinVideo[]> | null = null;
+
+/**
+ * Videos that ship with the website code (no upload needed). Lists the ones of this kind
+ * not already in the list, with one-click Add and Add all. `kind` "any" offers every video.
+ */
+export function BuiltinVideos({ kind, used, room, onAdd }: {
+  kind: 'intro' | 'story' | 'any'; used: VideoClip[]; room: number; onAdd: (clips: VideoClip[]) => void;
+}) {
+  const [all, setAll] = useState<BuiltinVideo[] | null>(null);
+  useEffect(() => {
+    builtinCache ??= api.admin.get<{ videos: BuiltinVideo[] }>('videos/builtin').then((r) => r.videos).catch(() => { builtinCache = null; return []; });
+    let live = true;
+    builtinCache.then((v) => live && setAll(v));
+    return () => { live = false; };
+  }, []);
+  const inUse = new Set(used.map((c) => c.src));
+  const free = (all || []).filter((v) => (kind === 'any' || v.kind === kind) && !inUse.has(v.clip.src));
+  if (!free.length || room <= 0) return null;
+  return (
+    <div className="mt-3 rounded-lg bg-stone-50 p-3">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="field-label !mb-0">Built-in videos (no upload needed)</p>
+        {free.length > 1 && room > 1 && (
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => onAdd(free.slice(0, room).map((v) => v.clip))}>Add all</button>
+        )}
+      </div>
+      <ul className="flex flex-wrap gap-3">
+        {free.map((v) => (
+          <li key={v.id}>
+            <button type="button" onClick={() => onAdd([v.clip])}
+              className="group flex items-center gap-2 rounded-lg border border-stone-200 bg-white p-1.5 pr-3 text-left text-sm hover:border-stone-400">
+              <img src={v.clip.poster} alt="" className="h-14 w-8 rounded object-cover" loading="lazy" />
+              <span><span className="block font-semibold text-stone-900">{v.label}</span>
+                <span className="text-xs text-stone-500">{Math.floor((v.clip.duration || 0) / 60)}:{String(Math.round((v.clip.duration || 0) % 60)).padStart(2, '0')} · Add</span></span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

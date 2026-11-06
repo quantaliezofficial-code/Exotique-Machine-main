@@ -20,6 +20,14 @@ export class ApiError extends Error {
   }
 }
 
+/** Plain-language messages for errors that come from the web server rather than the app. */
+const PROXY_ERRORS: Record<number, string> = {
+  413: 'This file is larger than the web server accepts. Ask whoever manages the server to raise the upload limit (client_max_body_size 320m, see DEPLOYMENT.md), or upload a smaller file.',
+  502: 'The website server is restarting or not reachable. Wait a minute and try again.',
+  503: 'The website server is busy or under maintenance. Wait a minute and try again.',
+  504: 'The server took too long to answer. For a video, wait a minute and reload: it may still have finished. If it keeps happening, the server\'s proxy timeout needs raising (see DEPLOYMENT.md).',
+};
+
 async function request<T = any>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set('X-Requested-With', 'XMLHttpRequest');
@@ -34,11 +42,13 @@ async function request<T = any>(path: string, init: RequestInit = {}): Promise<T
   let data: any = null;
   const text = await res.text();
   if (text) {
-    try { data = JSON.parse(text); } catch { data = { error: text.slice(0, 200) }; }
+    // A proxy in front of the site (e.g. the VPS's own nginx) answers with an HTML page, not JSON.
+    try { data = JSON.parse(text); } catch { data = /^\s*</.test(text) ? null : { error: text.slice(0, 200) }; }
   }
   if (!res.ok) {
     const message =
       (data && (data.error || (typeof data.detail === 'string' ? data.detail : data.detail?.message))) ||
+      PROXY_ERRORS[res.status] ||
       `Request failed (${res.status})`;
     throw new ApiError(message, res.status, data?.detail);
   }

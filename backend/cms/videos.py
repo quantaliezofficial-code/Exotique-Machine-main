@@ -34,7 +34,8 @@ MAX_VIDEO_MB = 300
 MAX_DURATION_S = 300          # 5 minutes is plenty for a reel or a showroom intro
 WEB_SHORT_SIDE = 720
 ALLOWED_CONTAINERS = {"mov", "mp4", "m4a", "3gp", "3g2", "mj2", "matroska", "webm"}
-VIDEO_URL_RE = re.compile(r"^/uploads/videos/[A-Za-z0-9_-]+\.mp4$")
+# Uploaded web copies, or videos that ship with the site (frontend public/videos/).
+VIDEO_URL_RE = re.compile(r"^/(?:uploads/videos|videos)/[A-Za-z0-9_-]+\.mp4$")
 
 
 def videos_dir() -> Path:

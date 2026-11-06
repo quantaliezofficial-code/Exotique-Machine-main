@@ -1,0 +1,29 @@
+# Host (VPS) nginx: the reverse proxy in front of the Docker stack.
+#
+# It terminates HTTPS and forwards to the frontend container on 127.0.0.1:3001. nginx's
+# defaults (1 MB uploads, 60 s timeouts) are too small for photos and videos. The block
+# that serves HTTPS for the site needs the four marked lines; if it already has one of
+# them, change that line rather than adding a second (nginx refuses duplicates). Check
+# with `sudo nginx -T`, then run:  sudo nginx -t && sudo systemctl reload nginx
+# DEPLOYMENT.md section 3b explains how to find which layer returns a 413.
+#
+# Keep your existing listen / server_name / ssl_certificate lines (e.g. from certbot).
+
+server {
+    server_name exotiquemachines.com www.exotiquemachines.com;
+    # listen 443 ssl; ssl_certificate ...; ssl_certificate_key ...;   (keep yours)
+
+    client_max_body_size 320m;     # <-- needed: up to 20 photos (25 MB each) or one 300 MB video
+    proxy_read_timeout 300s;       # <-- needed: video processing can take a minute or more
+    proxy_send_timeout 300s;       # <-- needed: slow uploads from phones
+    proxy_request_buffering on;    # <-- recommended: the container gets the file only once it has fully arrived
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
