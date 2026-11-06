@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { isOptimisable, placeholder, srcSet, variant } from '../../lib/images';
+import { isOptimisable, isUnsplash, placeholder, srcSet, variant } from '../../lib/images';
 
 interface PictureProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src' | 'srcSet'> {
   src: string | undefined | null;
@@ -10,6 +10,8 @@ interface PictureProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, '
   priority?: boolean;
   /** Width used for the fallback src (browsers without srcset support). */
   fallbackWidth?: number;
+  /** Limit the srcset (e.g. a dimmed background never needs 2560 px). */
+  widths?: readonly number[];
   /** Optional data-URI placeholder from the media library (otherwise /media/w32). */
   blurDataUrl?: string | null;
   className?: string;
@@ -23,7 +25,7 @@ interface PictureProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, '
  */
 export default function Picture({
   src, alt, sizes = '100vw', priority = false, fallbackWidth = 960, blurDataUrl, className = '',
-  wrapperClassName = '', onLoad, ...img
+  wrapperClassName = '', onLoad, widths, ...img
 }: PictureProps) {
   const ref = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(false);
@@ -47,11 +49,13 @@ export default function Picture({
     );
   }
   const optimisable = isOptimisable(src);
+  const remote = isUnsplash(src);
   const blur = blurDataUrl || placeholder(src);
   const imgEl = (
     <img
       ref={ref}
-      src={optimisable ? variant(src, fallbackWidth) : src}
+      src={optimisable || remote ? variant(src, fallbackWidth) : src}
+      {...(remote ? { srcSet: srcSet(src, 'webp', widths), sizes } : {})}
       alt={alt}
       loading={priority ? 'eager' : 'lazy'}
       decoding={priority ? 'sync' : 'async'}
@@ -71,8 +75,8 @@ export default function Picture({
     >
       {optimisable ? (
         <picture>
-          <source type="image/avif" srcSet={srcSet(src, 'avif')} sizes={sizes} />
-          <source type="image/webp" srcSet={srcSet(src, 'webp')} sizes={sizes} />
+          <source type="image/avif" srcSet={srcSet(src, 'avif', widths)} sizes={sizes} />
+          <source type="image/webp" srcSet={srcSet(src, 'webp', widths)} sizes={sizes} />
           {imgEl}
         </picture>
       ) : (

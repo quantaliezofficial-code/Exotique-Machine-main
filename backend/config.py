@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Public site
     SITE_URL: str = "https://exotiquemachines.com"
     SITE_NAME: str = "Exotique Machines"
+    # Optional IndexNow key (8-128 letters, digits or dashes). When set, new/changed/sold
+    # cars are pushed to Bing & co. right away; the key is served at /<key>.txt.
+    INDEXNOW_KEY: str = ""
 
     # Where the backend fetches the built SPA shell (index.html) from when rendering
     # SEO pages. In Docker this is the frontend nginx container on the shared network.

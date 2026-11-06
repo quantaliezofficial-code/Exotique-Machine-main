@@ -84,6 +84,23 @@ def website(s: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def webpage(path: str, name: str, description: Optional[str], date_modified: Optional[str] = None,
+            main_entity: Optional[str] = None) -> Dict[str, Any]:
+    """The page itself, with when its content last changed (freshness signal for search and AI)."""
+    return _clean({
+        "@type": "WebPage",
+        "@id": absolute(path) + "#webpage",
+        "url": absolute(path),
+        "name": name,
+        "description": (description or "")[:300] or None,
+        "isPartOf": {"@id": settings.SITE_URL + "/#website"},
+        "about": {"@id": org_id()},
+        "inLanguage": "en-IN",
+        "dateModified": date_modified,
+        "mainEntity": {"@id": absolute(main_entity)} if main_entity else None,
+    })
+
+
 def breadcrumbs(items: List[tuple]) -> Dict[str, Any]:
     return {
         "@type": "BreadcrumbList",

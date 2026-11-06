@@ -17,7 +17,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from backend.cms.defaults import DEFAULT_SETTINGS
-from backend.cms.images import store_image, delete_image_files, schedule_variants, mark_variants_ready
+from backend.cms.images import store_image, delete_image_files, schedule_variants, mark_variants_ready, parse_crop_list
 from backend.cms.media_registry import register_media
 from backend.cms.references import find_references
 from backend.cms.service import (
@@ -348,7 +348,12 @@ def list_reviews(status: Optional[str] = None, user: User = Depends(require_perm
     q = db.query(Review)
     if status in REVIEW_STATUSES:
         q = q.filter(Review.status == status)
-    rows = q.order_by(desc(Review.created_at)).limit(1000).all()
+    if status == "approved":
+        # Same order as the home-page carousel, so the list can be reordered.
+        q = q.order_by(desc(Review.is_featured), Review.sort_order, desc(Review.created_at))
+    else:
+        q = q.order_by(desc(Review.created_at))
+    rows = q.limit(1000).all()
     return {"reviews": [r.to_dict() for r in rows]}
 
 
@@ -622,14 +627,15 @@ def list_media(folder: Optional[str] = None, q: Optional[str] = None, with_usage
 
 @router.post("/media/upload", status_code=201)
 def upload_media(files: List[UploadFile] = File(...), folder: str = Form("general"), alt: Optional[str] = Form(None),
+                 crops: Optional[str] = Form(None, max_length=20000),
                  user: User = Depends(require_permission("cms:media")), db: Session = Depends(get_db)):
     if folder not in MEDIA_FOLDERS:
         folder = "general"
     if len(files) > 20:
         raise HTTPException(status_code=400, detail="Upload at most 20 files at a time")
     created, new_files = [], []
-    for f in files:
-        stored = store_image(f, min_width=MIN_WIDTH_BY_FOLDER.get(folder, 0))
+    for f, crop in zip(files, parse_crop_list(crops, len(files))):
+        stored = store_image(f, min_width=MIN_WIDTH_BY_FOLDER.get(folder, 0), crop=crop)
         existing = db.query(MediaAsset).filter(MediaAsset.sha256 == stored.sha256).first()
         if existing:
             # Same picture already in the library: reuse it instead of keeping two copies.
@@ -753,6 +759,39 @@ def _validate_setting(key: str, value: Any) -> Any:
     if len(json.dumps(value)) > 100_000:
         raise HTTPException(status_code=400, detail="Setting is too large")
     if key == "homepage":
+        services = value.get("services") or {}
+        if not isinstance(services, dict) or not isinstance(services.get("items", []), list) or len(services.get("items", [])) > 12:
+            raise HTTPException(status_code=400, detail="Services must have at most 12 items")
+        collections = value.get("collections") or []
+        if not isinstance(collections, list) or len(collections) > 12:
+            raise HTTPException(status_code=400, detail="Collections must have at most 12 rows")
+        velocity = value.get("velocity") or {"lines": [], "brandLine": False}
+        why = value.get("whyUs") or []
+        if (not isinstance(velocity, dict) or not isinstance(velocity.get("lines", []), list)
+                or len(velocity.get("lines", [])) > 3
+                or any(not isinstance(x, str) or len(x) > 120 for x in velocity.get("lines", []))):
+            raise HTTPException(status_code=400, detail="The moving text band takes up to 3 lines of at most 120 characters")
+        if not isinstance(why, list) or len(why) > 6:
+            raise HTTPException(status_code=400, detail="'Why buy from us' takes at most 6 cards")
+        try:
+            for it in why:
+                if not isinstance(it, dict) or not str(it.get("title", "")).strip():
+                    raise ValueError("Each 'Why buy from us' card needs a title")
+                if len(str(it.get("text", ""))) > 400:
+                    raise ValueError("Card text is limited to 400 characters")
+                _img(it.get("image"))
+            for it in services.get("items", []):
+                if not isinstance(it, dict) or not str(it.get("title", "")).strip():
+                    raise ValueError("Each service needs a title")
+                _img(it.get("image")); _link(it.get("link"))
+            if services.get("ctaUrl"):
+                _link(services["ctaUrl"])
+            for it in collections:
+                if not isinstance(it, dict) or not str(it.get("label", "")).strip():
+                    raise ValueError("Each collection row needs a label")
+                _img(it.get("image")); _link(it.get("link"))
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         known = {s["id"] for s in default["sections"]}
         sections = value.get("sections") or []
         if not isinstance(sections, list) or any(not isinstance(s, dict) or s.get("id") not in known for s in sections):

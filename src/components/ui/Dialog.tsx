@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
@@ -5,6 +6,9 @@ import { X } from 'lucide-react';
  * Accessible modal / drawer: focus moves in and is trapped, Escape closes, focus returns
  * to the opener, background scroll is locked.
  */
+const openDialogs: number[] = [];
+let dialogSeq = 0;
+
 export default function Dialog({
   title, onClose, children, variant = 'modal', wide = false,
 }: {
@@ -17,6 +21,11 @@ export default function Dialog({
   const panel = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Dialogs can open on top of each other (e.g. crop a photo inside the car form):
+    // only the top-most one reacts to Escape and traps Tab.
+    const id = ++dialogSeq;
+    openDialogs.push(id);
+    const isTop = () => openDialogs[openDialogs.length - 1] === id;
     const opener = document.activeElement as HTMLElement | null;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -26,6 +35,7 @@ export default function Dialog({
       ) || []);
     (focusables()[1] || focusables()[0])?.focus();
     const onKey = (e: KeyboardEvent) => {
+      if (!isTop()) return;
       if (e.key === 'Escape') onClose();
       if (e.key === 'Tab') {
         const els = focusables();
@@ -37,6 +47,7 @@ export default function Dialog({
     };
     document.addEventListener('keydown', onKey);
     return () => {
+      openDialogs.splice(openDialogs.indexOf(id), 1);
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
       opener?.focus?.();
@@ -44,7 +55,7 @@ export default function Dialog({
   }, [onClose]);
 
   const drawer = variant === 'drawer';
-  return (
+  return createPortal(
     <div className={`fixed inset-0 z-[70] flex ${drawer ? 'justify-end' : 'items-end justify-center sm:items-center p-0 sm:p-4'}`}>
       <div className="absolute inset-0 bg-stone-950/60 fade-in" onClick={onClose} aria-hidden />
       <div
@@ -64,6 +75,7 @@ export default function Dialog({
         </div>
         <div className="overflow-y-auto overscroll-contain px-5 py-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

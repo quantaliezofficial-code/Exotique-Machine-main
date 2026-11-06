@@ -1,69 +1,140 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowRight, Landmark, CalendarCheck, RefreshCcw, Wrench, Star, Quote, ChevronDown } from 'lucide-react';
-import type { HeroSlide, HomeSection, Vehicle, Review } from '../types';
-import { Link } from '../router';
-import { useSite, vehicleName } from '../content';
+import React, { useEffect, useMemo, useState } from 'react';
+import { LazyMotion, MotionConfig } from 'motion/react';
+
+const motionFeatures = () => import('./home/motionFeatures').then((m) => m.default);
+import { ChevronDown, ChevronRight, Heart, TrendingUp, PenLine } from 'lucide-react';
+import type { HeroSlide, HomeSection, Offer, Vehicle } from '../types';
+import { Link, useRouter } from '../router';
+import { useSite, formatPrice, vehicleName } from '../content';
 import { useGarage } from '../garage';
-import { brandPath, carPath } from '../lib/routes';
+import { brandPath, carPath, offerPath } from '../lib/routes';
 import { usePageMeta } from '../lib/seo';
-import { SectionHeading, Spinner } from './ui';
-import VehicleCard from './ui/VehicleCard';
+import { Spinner } from './ui';
 import Picture from './ui/Picture';
+import AnimatedBorder from './ui/AnimatedBorder';
+import CardGlare from './ui/CardGlare';
+import ArrowRevealButton from './ui/ArrowRevealButton';
+import MaskReveal from './home/MaskReveal';
+import Dialog from './ui/Dialog';
 import Hero from './home/Hero';
-import OfferCard from './OfferCard';
+import LogoCarousel, { iconForBrand, type BrandLogo } from './home/LogoCarousel';
+import type { TestimonialCard } from './home/CircularTestimonials';
+// Below-the-fold showpieces load in their own chunks so the hero paints first.
+const CardStack = React.lazy(() => import('./home/CardStack').then((m) => ({ default: m.CardStack })));
+const ZoomParallax = React.lazy(() => import('./home/ZoomParallax'));
+const CircularTestimonials = React.lazy(() => import('./home/CircularTestimonials'));
+const FlowingMenu = React.lazy(() => import('./home/FlowingMenu'));
+const VelocityBand = React.lazy(() => import('./home/RbSections').then((m) => ({ default: m.VelocityBand })));
+const WhyUs = React.lazy(() => import('./home/RbSections').then((m) => ({ default: m.WhyUs })));
+import { CountUp, Reveal } from './home/motion';
+import OfferCard, { offerBenefit } from './OfferCard';
 import ReviewForm from './ReviewForm';
 
-/** Home page. Every section, its order and its copy comes from Admin → Website. */
+type Home = NonNullable<ReturnType<typeof useSite>['home']>;
+type Settings = NonNullable<ReturnType<typeof useSite>['settings']>;
+type Ctx = { home: Home; settings: Settings; vehicles: Vehicle[] };
+
+/**
+ * Home page. Every section, its order, its copy and its images come from
+ * Admin → Website (hero slides, featured cars, reviews, offers, Settings → Home page).
+ * Motion respects the visitor's reduced-motion setting throughout.
+ */
 export default function HomeView() {
   const { home, settings, vehicles } = useSite();
   usePageMeta(settings ? { title: settings.seo.homeTitle, description: settings.seo.homeDescription, path: '/' } : null);
+  // Paint the first screen (hero + stats) on its own, then render the rest of the page
+  // right after: the long page no longer holds back the hero's first paint.
+  const [full, setFull] = useState(false);
+  const ready = !!home && !!settings;
+  useEffect(() => {
+    if (!ready || full) return;
+    let t = 0;
+    const r = requestAnimationFrame(() => { t = window.setTimeout(() => setFull(true), 0); });
+    return () => { cancelAnimationFrame(r); window.clearTimeout(t); };
+  }, [ready, full]);
   if (!home || !settings) return <Spinner />;
-
-  const sections = (settings.homepage.sections || []).filter((s) => s.enabled);
+  const ctx = { home, settings, vehicles };
+  const enabled = (settings.homepage.sections || []).filter((s) => s.enabled);
+  const firstScreen = Math.max(1, enabled.findIndex((s) => s.id !== 'hero' && s.id !== 'stats'));
+  const sections = full ? enabled : enabled.slice(0, firstScreen);
   return (
-    <div id="home-view">
-      {sections.map((s) => (
-        <React.Fragment key={s.id}>
-          {renderSection(s, { home, settings, vehicles })}
-        </React.Fragment>
-      ))}
-    </div>
+    <LazyMotion features={motionFeatures} strict>
+    <MotionConfig reducedMotion="user">
+      <div id="home-view" className="overflow-x-clip bg-[#FAFAF9]">
+        {sections.map((s) => (
+          <React.Suspense key={s.id} fallback={<div className="min-h-[60vh]" aria-hidden />}>{renderSection(s, ctx)}</React.Suspense>
+        ))}
+      </div>
+    </MotionConfig>
+    </LazyMotion>
   );
 }
-
-type Ctx = { home: NonNullable<ReturnType<typeof useSite>['home']>; settings: NonNullable<ReturnType<typeof useSite>['settings']>; vehicles: Vehicle[] };
 
 function renderSection(s: HomeSection, ctx: Ctx) {
   switch (s.id) {
     case 'hero': return <HeroSection ctx={ctx} />;
     case 'stats': return <StatsBar ctx={ctx} />;
-    case 'brands': return <Brands ctx={ctx} />;
+    case 'velocity': {
+      const v = ctx.settings.homepage.velocity;
+      const lines = [...(v?.lines || []).map((l) => l.trim()).filter(Boolean)];
+      if (v?.brandLine && ctx.home.brands.length) lines.push(ctx.home.brands.map((b) => b.name).join(' · '));
+      return <VelocityBand lines={lines} />;
+    }
+    case 'whyus': {
+      const photos = ctx.home.featured.vehicles.map((x) => x.images?.[0]).filter((u): u is string => !!u && u.startsWith('/uploads/'));
+      const cards = (ctx.settings.homepage.whyUs || []).filter((c) => c.title?.trim())
+        .map((c, i) => ({ ...c, image: c.image || photos[i % Math.max(1, photos.length)] || '' }));
+      return <WhyUs section={s} cards={cards} heading={<Heading section={s} fallbackTitle="Why buy from us" id="home-whyus" />} />;
+    }
+    case 'brands': return <Brands section={s} ctx={ctx} />;
     case 'showcase': return <Showcase section={s} ctx={ctx} />;
+    case 'services': return <Services section={s} ctx={ctx} />;
+    case 'testimonials': return <Testimonials section={s} ctx={ctx} />;
+    case 'lifestyle': return <Lifestyle section={s} ctx={ctx} />;
     case 'offers': return ctx.home.offers.length ? <Offers section={s} ctx={ctx} /> : null;
-    case 'services': return <Services />;
-    case 'testimonials': return <Testimonials section={s} reviews={ctx.home.reviews} />;
-    case 'lifestyle': return <Lifestyle vehicles={ctx.vehicles} />;
     case 'faq': return ctx.settings.faq.length ? <Faq section={s} items={ctx.settings.faq} /> : null;
     default: return null;
   }
 }
 
+/** Shared section heading in the original style: mono eyebrow, heavy title, light lead. */
+function Heading({ section, fallbackTitle, center = true, id, action }: { section: HomeSection; fallbackTitle: string; center?: boolean; id: string; action?: React.ReactNode }) {
+  return (
+    <Reveal className={`mb-12 md:mb-16 lg:mb-20 ${center ? 'text-center' : 'flex flex-col gap-5 md:flex-row md:items-end md:justify-between'}`}>
+      <div className={center ? 'mx-auto max-w-2xl' : 'max-w-2xl'}>
+        {section.eyebrow && <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-stone-600">{section.eyebrow}</p>}
+        <h2 id={id} className="mt-3 text-3xl font-black uppercase tracking-tight text-stone-900 sm:text-4xl">
+          <MaskReveal>{section.title || fallbackTitle}</MaskReveal>
+          {section.titleAccent && (
+            <><br /><MaskReveal delay={0.25}><span className="bg-gradient-to-r from-amber-700 via-amber-500 to-amber-700 bg-[length:200%_auto] bg-clip-text text-transparent motion-safe:animate-[em-shine_6s_linear_infinite]">{section.titleAccent}</span></MaskReveal></>
+          )}
+        </h2>
+        {section.subtitle && <p className={`mt-5 text-sm font-light md:text-base leading-relaxed text-stone-600 ${center ? 'mx-auto max-w-xl' : ''}`}>{section.subtitle}</p>}
+      </div>
+      {action}
+    </Reveal>
+  );
+}
+
+// ------------------------------------------------------------------ hero
 function HeroSection({ ctx }: { ctx: Ctx }) {
   const slides = useMemo<HeroSlide[]>(() => {
     if (ctx.home.hero.length) return ctx.home.hero;
-    // No slides published yet: show real cars from the showroom (never placeholder art).
+    // No slides published: the newest premium cars with studio photos (as the old site did).
     return ctx.home.featured.vehicles
-      .filter((v) => v.images?.[0]?.startsWith('/uploads/'))
-      .slice(0, 4)
+      .filter((v) => v.images?.[0]?.startsWith('/uploads/') && v.status !== 'sold')
+      .slice(0, 6)
       .map((v, i) => ({
-        id: `auto-${v.id}`, title: vehicleName(v), eyebrow: v.badge, description: null,
-        ctaLabel: 'View this car', ctaUrl: carPath(v.id), desktopImage: v.images[0], imageAlt: `${vehicleName(v)} ${v.badge || ''}`.trim(),
-        sortOrder: i, status: 'published' as const,
+        id: `auto-${v.id}`, title: v.category === 'premium' ? 'The Statement of Executive Presence' : 'Command Every Journey',
+        eyebrow: v.type || v.brand, description: v.description, watermark: (v.badge?.split('(')[0]?.trim() || v.model).toUpperCase(),
+        ctaLabel: `Explore ${v.brand} ${v.model}`, ctaUrl: carPath(v.id), desktopImage: v.images[0],
+        imageAlt: `${vehicleName(v)} ${v.badge || ''}`.trim(), sortOrder: i, status: 'published' as const,
       }));
   }, [ctx.home]);
   return <Hero slides={slides} heading={ctx.settings.homepage.heading} />;
 }
 
+// ------------------------------------------------------------------ stats
 function StatsBar({ ctx }: { ctx: Ctx }) {
   const { stats } = ctx.home;
   const items = (ctx.settings.homepage.stats || [])
@@ -77,12 +148,12 @@ function StatsBar({ ctx }: { ctx: Ctx }) {
     .filter((s) => s.value);
   if (!items.length) return null;
   return (
-    <section aria-label="Showroom at a glance" className="border-b border-stone-200 bg-white">
-      <dl className={`page-container grid divide-stone-200 py-6 text-center sm:divide-x ${items.length === 2 ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-y-4`}>
-        {items.map((s) => (
-          <div key={s.label} className="px-4">
-            <dd className="text-2xl font-black tracking-tight text-stone-900 sm:text-3xl">{s.value}</dd>
-            <dt className="mt-1 text-xs font-semibold uppercase tracking-widest text-stone-600">{s.label}</dt>
+    <section aria-label="Showroom at a glance" className="border-y border-stone-200/80 bg-stone-100/80 px-4 py-10 md:py-14" id="stats-bar">
+      <dl className="mx-auto grid max-w-7xl grid-cols-1 gap-6 text-center md:grid-cols-3 md:gap-8">
+        {items.map((s, i) => (
+          <div key={s.label} className={`flex flex-col items-center gap-1 ${i === 1 ? 'border-y border-stone-200 py-4 md:border-x md:border-y-0 md:py-0' : ''}`}>
+            <dd className={`text-3xl font-extrabold tracking-tight ${i % 2 ? 'text-stone-900' : 'text-amber-700'}`}><CountUp value={s.value} /></dd>
+            <dt className={`text-xs font-medium uppercase tracking-widest ${i % 2 ? 'text-amber-800' : 'text-stone-600'}`}>{s.label}</dt>
           </div>
         ))}
       </dl>
@@ -90,191 +161,240 @@ function StatsBar({ ctx }: { ctx: Ctx }) {
   );
 }
 
-function Brands({ ctx }: { ctx: Ctx }) {
-  if (!ctx.home.brands.length) return null;
+// ------------------------------------------------------------------ brands
+function Brands({ section, ctx }: { section: HomeSection; ctx: Ctx }) {
+  const { navigate } = useRouter();
+  const brands = useMemo<BrandLogo[]>(
+    () => ctx.home.brands.map((b) => ({ name: b.name, slug: b.slug, count: b.count, img: iconForBrand(b.name) })),
+    [ctx.home.brands],
+  );
+  if (!brands.length) return null;
   return (
-    <section className="page-container py-14 md:py-20" aria-labelledby="home-brands">
-      <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="eyebrow">Brands in stock</p>
-          <h2 id="home-brands" className="section-title mt-1">Shop by brand</h2>
-        </div>
-      </div>
-      <ul className="flex flex-wrap gap-2">
-        {ctx.home.brands.map((b) => (
-          <li key={b.slug}>
-            <Link to={brandPath(b.name)} className="chip min-h-11 px-4 text-sm">
-              {b.name} <span className="font-mono text-xs text-stone-500">{b.count}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <section className="page-container em-section" aria-labelledby="home-brands" id="brands-available-grid">
+      <Heading section={section} fallbackTitle="Brands in stock" id="home-brands" />
+      <LogoCarousel brands={brands} columns={5} onPick={(b) => navigate(brandPath(b.name))} />
     </section>
   );
+}
+
+// ------------------------------------------------------------------ featured (card stack)
+function useCardSize() {
+  const get = () => {
+    const w = typeof window === 'undefined' ? 1280 : window.innerWidth;
+    if (w < 640) { const cw = Math.min(340, w - 40); return { width: cw, height: Math.round(cw * 0.66) }; }
+    if (w < 1024) return { width: 440, height: 290 };
+    return { width: 540, height: 340 };
+  };
+  const [size, setSize] = useState(get);
+  useEffect(() => {
+    const on = () => setSize(get());
+    window.addEventListener('resize', on);
+    return () => window.removeEventListener('resize', on);
+  }, []);
+  return size;
 }
 
 function Showcase({ section, ctx }: { section: HomeSection; ctx: Ctx }) {
   const { favorites, toggleFavorite } = useGarage();
-  const list = ctx.home.featured.vehicles;
+  const { navigate } = useRouter();
+  const size = useCardSize();
+  const list = ctx.home.featured.vehicles.filter((v) => v.images?.length);
   if (!list.length) return null;
+  const items = list.map((v) => ({ id: v.id, title: vehicleName(v), vehicle: v }));
   return (
-    <section className="page-container py-14 md:py-20" aria-labelledby="home-showcase">
-      <SectionHeading
-        id="home-showcase"
-        eyebrow="Handpicked"
-        title={section.title || 'Featured cars'}
-        lead={section.subtitle}
-        action={
-          <Link to="/cars" className="btn btn-secondary shrink-0">
-            View all {ctx.home.stats.count || ''} cars <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        }
-      />
-      {/* Scroll-snap row on phones, grid from tablet up: no JS carousel needed. */}
-      <ul className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 no-scrollbar sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
-        {list.map((v) => (
-          <li key={v.id} className="w-[82%] shrink-0 snap-start sm:w-auto">
-            <VehicleCard vehicle={v} isFavorite={favorites.includes(v.id)} onToggleFavorite={toggleFavorite} />
-          </li>
-        ))}
-      </ul>
+    <section className="em-section border-t border-stone-200/70 bg-stone-50/60" aria-labelledby="home-showcase" id="featured-elite-fleet">
+      <div className="page-container">
+        <Heading section={section} fallbackTitle="Featured cars" center={false} id="home-showcase"
+          action={
+            <ArrowRevealButton to="/cars" tone="accent" className="border border-amber-600/30">
+              View all showroom ({ctx.home.stats.count || list.length} cars)
+            </ArrowRevealButton>
+          } />
+      </div>
+      <div className="mt-6 flex w-full justify-center sm:mt-12">
+        <CardStack
+          items={items}
+          autoAdvance
+          intervalMs={3500}
+          pauseOnHover
+          showDots
+          cardWidth={size.width}
+          cardHeight={size.height}
+          renderCard={(item, { active }) => {
+            const v = item.vehicle as Vehicle;
+            const fav = favorites.includes(v.id);
+            const facts = [v.year, v.kmDriven ? `${Math.round(v.kmDriven / 1000)}k km` : null, v.fuel, v.transmission].filter(Boolean).join(' · ');
+            return (
+              <div onClick={() => active && navigate(carPath(v.id))}
+                className={`group/card relative h-full w-full select-none overflow-hidden rounded-2xl bg-stone-900 text-white ${active ? 'cursor-pointer' : ''}`}>
+                <Picture src={v.cardImage || v.images[0]} alt={vehicleName(v)} sizes={`${size.width}px`} widths={[640, 960, 1280]} loading="eager" draggable={false}
+                  className="h-full w-full object-cover opacity-85 transition-transform duration-700 group-hover/card:scale-105" wrapperClassName="absolute inset-0" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/40 to-stone-950/10" />
+                <div className="absolute inset-x-4 top-4 z-10 flex items-center justify-between">
+                  <span className="rounded border border-amber-500/20 bg-amber-700/95 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white shadow-lg backdrop-blur-md">
+                    {v.showcaseLabel || v.lifestyle || v.type}
+                  </span>
+                  <button type="button" tabIndex={active ? 0 : -1} disabled={!active}
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(v.id); }}
+                    aria-pressed={fav} aria-label={fav ? `Remove ${vehicleName(v)} from my garage` : `Save ${vehicleName(v)}`}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-md transition hover:bg-black/60">
+                    <Heart className={`h-4 w-4 ${fav ? 'fill-current text-red-500' : 'text-stone-200'}`} />
+                  </button>
+                </div>
+                <div className="absolute inset-x-0 bottom-0 z-10 p-5">
+                  <p className="font-mono text-[11px] font-semibold uppercase tracking-widest text-stone-300">{v.brand}</p>
+                  <h3 className="text-xl font-bold uppercase tracking-tight">{v.model}</h3>
+                  {facts && <p className="mt-0.5 text-xs text-stone-300">{facts}</p>}
+                  <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
+                    <div>
+                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-stone-400">{v.status === 'sold' ? 'Sold' : 'Price'}</span>
+                      <p className="text-base font-black text-amber-400">{formatPrice(v.price)}</p>
+                    </div>
+                    <Link to={carPath(v.id)} tabIndex={active ? 0 : -1} onClick={(e) => e.stopPropagation()}
+                      className={`inline-flex min-h-10 items-center rounded px-4 text-[11px] font-bold uppercase tracking-widest transition ${active ? 'bg-amber-700 text-white hover:bg-amber-800' : 'pointer-events-none bg-white/10 text-white/50'}`}>
+                      View specs
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          }}
+        />
+      </div>
     </section>
   );
+}
+
+// ------------------------------------------------------------------ services (zoom parallax)
+function Services({ section, ctx }: { section: HomeSection; ctx: Ctx }) {
+  const sv = ctx.settings.homepage.services;
+  if (!sv?.items?.length) return null;
+  return (
+    <section className="relative em-section-top bg-white pb-20 md:pb-28" aria-labelledby="home-services" id="services-provide">
+      <div className="page-container">
+        <Heading section={section} fallbackTitle="Our services" center={false} id="home-services" />
+      </div>
+      <ZoomParallax
+        center={{ eyebrow: sv.centerEyebrow, title: sv.centerTitle, text: sv.centerText, ctaLabel: sv.ctaLabel, ctaUrl: sv.ctaUrl }}
+        items={sv.items}
+      />
+    </section>
+  );
+}
+
+// ------------------------------------------------------------------ testimonials
+function Testimonials({ section, ctx }: { section: HomeSection; ctx: Ctx }) {
+  const [writing, setWriting] = useState(false);
+  const byId = useMemo(() => new Map(ctx.vehicles.map((v) => [v.id, v])), [ctx.vehicles]);
+  const cards = useMemo<TestimonialCard[]>(() => ctx.home.reviews.map((r) => {
+    const car = r.vehicleId ? byId.get(r.vehicleId) : undefined;
+    return {
+      id: r.id, quote: r.body, name: r.customerName,
+      designation: r.customerTitle || (car ? `${vehicleName(car)} owner` : null),
+      image: r.photo || car?.images?.[0] || null, rating: r.rating,
+      sourceUrl: r.sourceUrl, sourceLabel: r.source === 'google' ? 'Google' : r.source,
+    };
+  }), [ctx.home.reviews, byId]);
+  return (
+    <section className="em-section border-y border-stone-200/80 bg-stone-50/60" aria-labelledby="home-reviews" id="testimonials">
+      <div className="page-container">
+        <Heading section={section} fallbackTitle="What our customers say" id="home-reviews" />
+        {cards.length > 0 ? (
+          <Reveal className="flex justify-center"><CircularTestimonials items={cards} /></Reveal>
+        ) : (
+          <p className="text-center text-sm text-stone-600">Bought a car from us? Be the first to share your experience.</p>
+        )}
+        <div className="mt-14 flex justify-center">
+          <button type="button" className="btn btn-secondary" onClick={() => setWriting(true)}><PenLine className="h-4 w-4" aria-hidden />Write a review</button>
+        </div>
+      </div>
+      {writing && <Dialog title="Write a review" onClose={() => setWriting(false)} wide><ReviewForm onDone={() => setWriting(false)} /></Dialog>}
+    </section>
+  );
+}
+
+// ------------------------------------------------------------------ lifestyle (hover rows)
+function Lifestyle({ section, ctx }: { section: HomeSection; ctx: Ctx }) {
+  const rows = (ctx.settings.homepage.collections || []).filter((c) => c.label && c.image);
+  if (!rows.length) return null;
+  return (
+    <section className="em-section bg-white" aria-labelledby="home-lifestyle" id="discover-lifestyle">
+      <div className="page-container">
+        <Reveal className="mb-12 text-center md:mb-16 lg:mb-20">
+          {section.eyebrow && (
+            <p className="flex items-center justify-center gap-2 font-mono text-xs font-semibold uppercase tracking-widest text-amber-800">
+              <TrendingUp className="h-4 w-4" aria-hidden />{section.eyebrow}
+            </p>
+          )}
+          <h2 id="home-lifestyle" className="mt-3 text-3xl font-black uppercase tracking-tight text-stone-900 sm:text-4xl md:text-5xl">{section.title || 'Discover by lifestyle'}</h2>
+          {section.subtitle && <p className="mx-auto mt-5 max-w-2xl text-sm font-light md:text-base leading-relaxed text-stone-600">{section.subtitle}</p>}
+        </Reveal>
+      </div>
+      <FlowingMenu items={rows} />
+    </section>
+  );
+}
+
+// ------------------------------------------------------------------ offers (privileges banner)
+function useCountdown(endsAt?: string) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(t);
+  }, []);
+  if (!endsAt) return null;
+  const ms = new Date(endsAt).getTime() - now;
+  if (ms <= 0) return null;
+  const d = Math.floor(ms / 86_400_000), h = Math.floor((ms % 86_400_000) / 3_600_000);
+  return `${d} day${d === 1 ? '' : 's'}, ${String(h).padStart(2, '0')} hours`;
 }
 
 function Offers({ section, ctx }: { section: HomeSection; ctx: Ctx }) {
+  const [lead, ...rest] = ctx.home.offers as Offer[];
+  const left = useCountdown(lead?.endsAt);
+  const benefit = lead ? offerBenefit(lead) : null;
   return (
-    <section className="border-y border-stone-200 bg-white py-14 md:py-20" aria-labelledby="home-offers">
-      <div className="page-container">
-        <SectionHeading
-          id="home-offers"
-          eyebrow="Offers"
-          title={section.title || 'Current offers'}
-          lead={section.subtitle}
-          action={<Link to="/offers" className="btn btn-secondary shrink-0">All offers <ArrowRight className="h-4 w-4" aria-hidden /></Link>}
-        />
-        <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {ctx.home.offers.map((o) => <li key={o.id}><OfferCard offer={o} /></li>)}
-        </ul>
-      </div>
-    </section>
-  );
-}
-
-const SERVICES = [
-  { to: '/finance', icon: Landmark, title: 'Car finance', body: 'EMI calculator and loan options from partner banks.' },
-  { to: '/test-drive', icon: CalendarCheck, title: 'Test drive', body: 'Pick a car and a time slot that suits you.' },
-  { to: '/trade-in', icon: RefreshCcw, title: 'Trade-in', body: 'An indicative value for your current car in a minute.' },
-  { to: '/service', icon: Wrench, title: 'Service', body: 'Book maintenance, diagnostics or detailing.' },
-];
-
-function Services() {
-  return (
-    <section className="page-container py-14 md:py-20" aria-labelledby="home-services">
-      <SectionHeading id="home-services" eyebrow="How we help" title="Buy, finance, trade in and service" />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {SERVICES.map(({ to, icon: Icon, title, body }) => (
-          <li key={to}>
-            <Link to={to} className="card group flex h-full flex-col p-5 transition-colors hover:border-stone-900">
-              <Icon className="h-6 w-6 text-[var(--color-accent)]" aria-hidden />
-              <span className="mt-4 text-base font-bold text-stone-900">{title}</span>
-              <span className="mt-1 text-sm text-stone-600">{body}</span>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-stone-900">
-                Start <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function Testimonials({ section, reviews }: { section: HomeSection; reviews: Review[] }) {
-  const [writing, setWriting] = useState(false);
-  return (
-    <section className="border-y border-stone-200 bg-white py-14 md:py-20" aria-labelledby="home-reviews">
-      <div className="page-container">
-        <SectionHeading
-          id="home-reviews"
-          eyebrow="Reviews"
-          title={section.title || 'What our customers say'}
-          lead={reviews.length ? section.subtitle : 'Bought a car from us? We would love to hear about it.'}
-          action={!writing && <button type="button" className="btn btn-secondary shrink-0" onClick={() => setWriting(true)}>Write a review</button>}
-        />
-        {writing && <div className="card mb-8 p-5"><ReviewForm onDone={() => setWriting(false)} /></div>}
-        {reviews.length > 0 && (
-          <ul className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {reviews.map((r) => (
-              <li key={r.id} className="card flex flex-col p-5">
-                <Quote className="h-5 w-5 text-stone-300" aria-hidden />
-                {r.rating ? (
-                  <p className="mt-2 flex gap-0.5" aria-label={`${r.rating} out of 5`}>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`h-4 w-4 ${i < (r.rating || 0) ? 'fill-amber-500 text-amber-500' : 'text-stone-300'}`} aria-hidden />
-                    ))}
-                  </p>
-                ) : null}
-                <blockquote className="mt-3 flex-1 text-sm leading-relaxed text-stone-700">{r.body}</blockquote>
-                <footer className="mt-4 flex items-center gap-3">
-                  {r.photo && <Picture src={r.photo} alt="" sizes="40px" className="h-10 w-10 rounded-full object-cover" wrapperClassName="h-10 w-10 rounded-full" />}
-                  <div>
-                    <p className="text-sm font-bold text-stone-900">{r.customerName}</p>
-                    {r.customerTitle && <p className="text-xs text-stone-600">{r.customerTitle}</p>}
-                  </div>
-                  {r.sourceUrl && <a href={r.sourceUrl} target="_blank" rel="noopener nofollow" className="ml-auto text-xs text-stone-500 underline">{r.source}</a>}
-                </footer>
-              </li>
-            ))}
-          </ul>
+    <section className="page-container em-section" aria-labelledby="home-offers" id="festive-offer-banner">
+      <Reveal>
+      <CardGlare radius="1rem">
+      <AnimatedBorder width={1.5} duration={8} className="shadow-md" contentClassName="relative flex flex-col items-center justify-between gap-8 overflow-hidden bg-gradient-to-r from-stone-50 via-stone-100 to-stone-50 p-6 text-center sm:p-12 md:flex-row md:text-left">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-amber-500/10 blur-3xl" aria-hidden />
+        {lead.image && (
+          <div className="relative hidden aspect-[4/3] w-56 shrink-0 overflow-hidden rounded-xl lg:block">
+            <Picture src={lead.image} alt="" sizes="224px" widths={[320, 640]} className="h-full w-full object-cover" wrapperClassName="h-full w-full" />
+          </div>
         )}
-      </div>
+        <div className="relative max-w-xl space-y-4">
+          <span className="inline-block rounded-full border border-stone-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-stone-700">
+            {section.eyebrow || 'Showroom offer'}{benefit ? ` · ${benefit}` : ''}
+          </span>
+          <h2 id="home-offers" className="text-3xl font-extrabold leading-tight text-stone-900 sm:text-4xl">{lead.title}</h2>
+          {(lead.summary || section.subtitle) && <p className="text-sm font-light leading-relaxed text-stone-700">{lead.summary || section.subtitle}</p>}
+        </div>
+        <div className="relative flex shrink-0 flex-col items-center gap-3 sm:items-start">
+          <ArrowRevealButton to={offerPath(lead.slug)} tone="dark">{lead.ctaLabel || 'Explore privileges'}</ArrowRevealButton>
+          {left && <span className="font-mono text-xs text-stone-600">Offer ends in: {left}</span>}
+          <Link to="/offers" className="text-xs font-semibold text-stone-700 underline underline-offset-2">All offers</Link>
+        </div>
+      </AnimatedBorder>
+      </CardGlare>
+      </Reveal>
+      {rest.length > 0 && (
+        <ul className="mt-12 grid gap-6 md:mt-16 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+          {rest.map((o, i) => <Reveal as="li" key={o.id} delay={i * 0.08}><OfferCard offer={o} /></Reveal>)}
+        </ul>
+      )}
     </section>
   );
 }
 
-function Lifestyle({ vehicles }: { vehicles: Vehicle[] }) {
-  const groups = useMemo(() => {
-    const by = new Map<string, { type: string; count: number; image?: string; price: number }>();
-    for (const v of vehicles) {
-      if (v.status === 'sold' || !v.lifestyle) continue;
-      const g = by.get(v.lifestyle) || { type: v.lifestyle, count: 0, price: -1 };
-      g.count += 1;
-      const img = v.images?.find((i) => i.startsWith('/uploads/'));
-      if (img && (v.price || 0) > g.price) { g.image = img; g.price = v.price || 0; }
-      by.set(v.lifestyle, g);
-    }
-    return [...by.values()].filter((g) => g.image).sort((a, b) => b.count - a.count).slice(0, 4);
-  }, [vehicles]);
-  if (groups.length < 2) return null;
-  return (
-    <section className="page-container py-14 md:py-20" aria-labelledby="home-types">
-      <SectionHeading id="home-types" eyebrow="Collections" title="Browse by body type" />
-      <ul className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {groups.map((g) => (
-          <li key={g.type}>
-            <Link to={`/cars?type=${encodeURIComponent(g.type)}`} className="group relative block aspect-[3/4] overflow-hidden rounded-xl bg-stone-900 text-white">
-              <Picture src={g.image} alt="" sizes="(min-width: 1024px) 25vw, 50vw"
-                className="h-full w-full object-cover opacity-80 transition-transform duration-500 group-hover:scale-105" wrapperClassName="absolute inset-0" />
-              <span className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/20 to-transparent" />
-              <span className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                <span className="block text-lg font-black sm:text-xl">{g.type}</span>
-                <span className="text-sm text-stone-200">{g.count} car{g.count > 1 ? 's' : ''} in stock</span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
+// ------------------------------------------------------------------ FAQ
 function Faq({ section, items }: { section: HomeSection; items: { question: string; answer: string }[] }) {
   return (
-    <section className="border-t border-stone-200 bg-white py-14 md:py-20" aria-labelledby="home-faq">
+    <section className="em-section border-t border-stone-200 bg-stone-50/60" aria-labelledby="home-faq">
       <div className="page-container max-w-3xl">
         <h2 id="home-faq" className="section-title">{section.title || 'Frequently asked questions'}</h2>
-        <div className="mt-6 divide-y divide-stone-200 border-y border-stone-200">
+        <div className="mt-10 divide-y divide-stone-200 border-y border-stone-200 md:mt-12">
           {items.map((f) => (
             <details key={f.question} className="group py-1">
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-left text-base font-semibold text-stone-900">
@@ -289,3 +409,4 @@ function Faq({ section, items }: { section: HomeSection; items: { question: stri
     </section>
   );
 }
+

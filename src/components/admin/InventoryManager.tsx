@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Plus, Pencil, Trash2, ExternalLink, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, ExternalLink, Upload, X, Crop as CropIcon } from 'lucide-react';
 import type { Vehicle } from '../../types';
 import { api } from '../../services/api';
 import { formatPrice, vehicleName } from '../../content';
@@ -9,6 +9,9 @@ import { Field } from '../ui';
 import Dialog from '../ui/Dialog';
 import Picture from '../ui/Picture';
 import { PanelHeader, StatusBadge, ConfirmDialog, useAction, useAdmin, MoveButtons, moveItem } from './ui';
+import CropDialog, { cropPreview, type CropSpec } from './CropDialog';
+
+interface NewPhoto { file: File; url: string; crop: CropSpec | null; preview: string | null }
 
 export default function InventoryManager({ onChange }: { onChange: () => void }) {
   const { can } = useAdmin();
@@ -100,12 +103,26 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
     registration: v?.registration || '', status: v?.status || 'available', isPublished: v ? !!v.isPublished : true,
   });
   const [images, setImages] = useState<string[]>(v?.images || []);
-  const [files, setFiles] = useState<File[]>([]);
+  // New photos, each with an optional crop (applied by the server; the original is kept).
+  const [files, setFiles] = useState<NewPhoto[]>([]);
+  const [cropping, setCropping] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const previews = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
-  useEffect(() => () => previews.forEach(URL.revokeObjectURL), [previews]);
+  useEffect(() => () => files.forEach((x) => URL.revokeObjectURL(x.url)), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const addFiles = (list: FileList | null) => {
+    const added = Array.from(list || []).map((file) => ({ file, url: URL.createObjectURL(file), crop: null, preview: null }));
+    setFiles((cur) => [...cur, ...added].slice(0, 20));
+  };
+  const removeFile = (i: number) => setFiles((cur) => {
+    URL.revokeObjectURL(cur[i].url);
+    return cur.filter((_, j) => j !== i);
+  });
+  const applyCrop = async (i: number, crop: CropSpec | null) => {
+    const preview = crop ? await cropPreview(files[i].url, crop).catch(() => null) : null;
+    setFiles((cur) => cur.map((x, j) => (j === i ? { ...x, crop, preview } : x)));
+    setCropping(null);
+  };
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setF((p) => ({ ...p, [k]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value }));
   const canPrice = can('pricing:edit') || !v;
@@ -114,8 +131,8 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
     e.preventDefault();
     setError('');
     if (!f.brand.trim() || !f.model.trim() || !Number(f.price)) { setError('Brand, model and price are required.'); return; }
-    const big = files.find((x) => x.size > 25 * 1024 * 1024);
-    if (big) { setError(`${big.name} is larger than 25 MB.`); return; }
+    const big = files.find((x) => x.file.size > 25 * 1024 * 1024);
+    if (big) { setError(`${big.file.name} is larger than 25 MB.`); return; }
     const fd = new FormData();
     Object.entries(f).forEach(([k, val]) => {
       if (k === 'features') fd.append('features', JSON.stringify(String(val).split('\n').map((s) => s.trim()).filter(Boolean)));
@@ -125,7 +142,8 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
     });
     fd.append('imageUrls', JSON.stringify(images));
     if (v) fd.append('replaceImages', 'true');
-    files.forEach((file) => fd.append('photos', file));
+    files.forEach((x) => fd.append('photos', x.file));
+    if (files.some((x) => x.crop)) fd.append('photoCrops', JSON.stringify(files.map((x) => x.crop)));
     setBusy(true);
     try {
       if (v) await api.updateVehicle(v.id, fd); else await api.createVehicle(fd);
@@ -190,7 +208,7 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
 
         <div>
           <span className="field-label">Photos</span>
-          <p className="field-hint mb-3">The first photo is the cover. Originals are kept untouched; location data is removed and fast WebP/AVIF versions are made automatically.</p>
+          <p className="field-hint mb-3">The first photo is the cover. Use <b>Crop</b> on a new photo to trim or straighten it before saving (optional). Originals are kept untouched; location data is removed and fast WebP/AVIF versions are made automatically.</p>
           <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
             {images.map((url, i) => (
               <li key={url} className="relative overflow-hidden rounded-lg border border-stone-200">
@@ -201,12 +219,16 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
                 </div>
               </li>
             ))}
-            {previews.map((src, i) => (
-              <li key={src} className="relative overflow-hidden rounded-lg border border-dashed border-stone-300">
-                <img src={src} alt="" className="aspect-[4/3] w-full object-cover" />
-                <div className="flex items-center justify-between bg-white px-2 text-[11px] text-stone-500">
-                  New
-                  <button type="button" className="flex h-9 w-9 items-center justify-center text-red-700" onClick={() => setFiles(files.filter((_, j) => j !== i))} aria-label="Remove new photo"><X className="h-4 w-4" /></button>
+            {files.map((x, i) => (
+              <li key={x.url} className="relative overflow-hidden rounded-lg border border-dashed border-stone-300">
+                <img src={x.preview || x.url} alt="" className="aspect-[4/3] w-full bg-stone-100 object-cover" />
+                <span className={`absolute left-1.5 top-1.5 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${x.crop ? 'bg-amber-700 text-white' : 'bg-white/90 text-stone-700'}`}>
+                  {x.crop ? 'Cropped' : 'New'}
+                </span>
+                <div className="flex items-center justify-between bg-white px-1">
+                  <button type="button" className="flex h-9 items-center gap-1 px-1.5 text-[11px] font-semibold text-stone-800 hover:text-stone-950"
+                    onClick={() => setCropping(i)} aria-label={`Crop ${x.file.name}`}><CropIcon className="h-4 w-4" aria-hidden />Crop</button>
+                  <button type="button" className="flex h-9 w-9 items-center justify-center text-red-700" onClick={() => removeFile(i)} aria-label="Remove new photo"><X className="h-4 w-4" /></button>
                 </div>
               </li>
             ))}
@@ -215,7 +237,7 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
                 <Upload className="h-5 w-5" aria-hidden />Add photos
               </button>
               <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only"
-                onChange={(e) => { setFiles([...files, ...Array.from(e.target.files || [])].slice(0, 20)); e.target.value = ''; }} />
+                onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} />
             </li>
           </ul>
         </div>
@@ -224,6 +246,10 @@ function VehicleForm({ vehicle, onClose, onSaved }: { vehicle: Vehicle | null; o
           <input type="checkbox" checked={f.isPublished} onChange={set('isPublished')} className="h-4 w-4 accent-stone-900" />
           Show this car on the website
         </label>
+        {cropping !== null && files[cropping] && (
+          <CropDialog src={files[cropping].url} fileName={files[cropping].file.name} initial={files[cropping].crop}
+            defaultShape="16:10" onApply={(c) => applyCrop(cropping, c)} onClose={() => setCropping(null)} />
+        )}
         {error && <p className="form-alert form-alert-error" role="alert">{error}</p>}
         <div className="flex justify-end gap-2 border-t border-stone-200 pt-4">
           <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>

@@ -1,4 +1,5 @@
 import type {
+  ListingInfo,
   Vehicle, AdminUser, ActivityLog, AdminPermission, HomePayload, Offer, Review, SiteSettings,
 } from '../types';
 
@@ -68,6 +69,15 @@ export const api = {
   async getVehicles(): Promise<Vehicle[]> {
     const data = await request<{ vehicles: Vehicle[] }>(`${API_BASE}/vehicles`);
     return Array.isArray(data.vehicles) ? data.vehicles : [];
+  },
+  async getListing(params: { brand?: string; collection?: string }): Promise<ListingInfo | null> {
+    const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();
+    try {
+      return await request<ListingInfo>(`${API_BASE}/public/listing${q ? `?${q}` : ''}`);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 404) return null;
+      throw e;
+    }
   },
   async getVehicle(id: string): Promise<Vehicle | null> {
     try {

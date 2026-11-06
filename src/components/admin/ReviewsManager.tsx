@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, Check, X, Star } from 'lucide-react';
-import type { Review } from '../../types';
+import type { Review, Vehicle } from '../../types';
 import { api } from '../../services/api';
 import { Field } from '../ui';
 import Dialog from '../ui/Dialog';
-import { PanelHeader, StatusBadge, ConfirmDialog, ImageField, useAction, useAdmin } from './ui';
+import { PanelHeader, StatusBadge, ConfirmDialog, ImageField, MoveButtons, moveItem, useAction, useAdmin } from './ui';
 
 export default function ReviewsManager({ onChange }: { onChange: () => void }) {
   const { can } = useAdmin();
@@ -16,13 +16,20 @@ export default function ReviewsManager({ onChange }: { onChange: () => void }) {
   const load = () => api.admin.get<{ reviews: Review[] }>(`reviews${status ? `?status=${status}` : ''}`).then((r) => setList(r.reviews));
   useEffect(() => { setList(null); load(); }, [status]); // eslint-disable-line react-hooks/exhaustive-deps
   const done = () => { load(); onChange(); };
+  const reorder = async (i: number, delta: number) => {
+    if (!list) return;
+    const next = moveItem(list, i, delta);
+    setList(next);
+    if (await run(() => api.admin.post('reviews/reorder', { ids: next.map((x) => x.id) }), 'Order saved') !== undefined) onChange();
+    else load();
+  };
   const moderate = async (r: Review, patch: { status?: string; isFeatured?: boolean }) => {
     if (await run(() => api.admin.patch(`reviews/${r.id}/moderate`, patch), 'Saved') !== undefined) done();
   };
 
   return (
     <div>
-      <PanelHeader title="Reviews" lead="Customer reviews submitted on the website wait here until approved. You can also add reviews you received in person or on Google — only add real reviews, with the customer's permission."
+      <PanelHeader title="Reviews" lead="Approved reviews appear in the animated three-card carousel on the home page, in the order shown under Approved (featured ones first). Each card uses the customer photo, or the photo of the linked car when there is none. Website submissions and reviews imported from the previous site wait under Pending until you approve them — only publish real reviews, with the customer's permission."
         actions={<button className="btn btn-primary" onClick={() => setEditing('new')}><Plus className="h-4 w-4" aria-hidden />Add review</button>} />
       <div role="tablist" className="mb-4 flex gap-1">
         {(['pending', 'approved', 'rejected', ''] as const).map((s) => (
@@ -31,9 +38,13 @@ export default function ReviewsManager({ onChange }: { onChange: () => void }) {
       </div>
       {list === null ? <p className="text-sm text-stone-500">Loading…</p> : list.length === 0 ? <p className="card p-6 text-sm text-stone-600">No reviews here.</p> : (
         <ul className="space-y-3">
-          {list.map((r) => (
+          {list.map((r, i) => (
             <li key={r.id} className="card p-4">
               <div className="flex flex-wrap items-center gap-2">
+                {status === 'approved' && can('cms:publish') && (
+                  <MoveButtons first={i === 0} last={i === list.length - 1} onUp={() => reorder(i, -1)} onDown={() => reorder(i, 1)} />
+                )}
+                {r.photo && <img src={r.photo} alt="" className="h-9 w-9 rounded-full object-cover" width={36} height={36} loading="lazy" />}
                 <p className="font-semibold text-stone-900">{r.customerName}</p>
                 {r.customerTitle && <p className="text-xs text-stone-500">{r.customerTitle}</p>}
                 <StatusBadge status={r.status} />
@@ -66,12 +77,15 @@ function ReviewEditor({ review, onClose, onSaved }: { review: Review | null; onC
     customerName: review?.customerName || '', customerTitle: review?.customerTitle || '', rating: review?.rating ? String(review.rating) : '',
     body: review?.body || '', photo: review?.photo || '', source: review?.source || 'in-store', sourceUrl: review?.sourceUrl || '',
     reviewDate: review?.reviewDate?.slice(0, 10) || '', status: review?.status || 'pending', isFeatured: !!review?.isFeatured,
+    vehicleId: review?.vehicleId || '',
   });
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  useEffect(() => { api.getAdminVehicles().then(setVehicles).catch(() => {}); }, []);
   const { run, busy } = useAction();
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    const body = { ...f, rating: f.rating ? Number(f.rating) : null, photo: f.photo || null, sourceUrl: f.sourceUrl || null,
+    const body = { ...f, rating: f.rating ? Number(f.rating) : null, photo: f.photo || null, vehicleId: f.vehicleId || null, sourceUrl: f.sourceUrl || null,
       reviewDate: f.reviewDate ? new Date(f.reviewDate).toISOString() : null, sortOrder: review?.sortOrder ?? 0 };
     if (await run(() => (review ? api.admin.put(`reviews/${review.id}`, body) : api.admin.post('reviews', body)), 'Review saved') !== undefined) onSaved();
   };
@@ -92,7 +106,13 @@ function ReviewEditor({ review, onClose, onSaved }: { review: Review | null; onC
           </select>}</Field>
         </div>
         <Field label="Link to the original review" optional hint="e.g. the Google review URL">{(p) => <input {...p} className="field" value={f.sourceUrl} onChange={set('sourceUrl')} placeholder="https://" />}</Field>
-        <ImageField label="Customer photo" folder="reviews" value={f.photo} onChange={(u) => setF((p) => ({ ...p, photo: u || '' }))} hint="Only with the customer's permission." />
+        <Field label="Car they bought" optional hint="If there is no customer photo, the carousel shows this car's photo.">{(p) => (
+          <select {...p} className="field" value={f.vehicleId} onChange={set('vehicleId')}>
+            <option value="">None</option>
+            {vehicles.map((v) => <option key={v.id} value={v.id}>{v.brand} {v.model}{v.year ? ` (${v.year})` : ''}</option>)}
+          </select>
+        )}</Field>
+        <ImageField label="Customer photo" folder="reviews" value={f.photo} onChange={(u) => setF((p) => ({ ...p, photo: u || '' }))} hint="Only with the customer's permission. Square photos at least 800 px look best in the carousel." />
         <div className="flex justify-end gap-2 border-t border-stone-200 pt-4">
           <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Save review'}</button>

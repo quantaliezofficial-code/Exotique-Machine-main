@@ -145,7 +145,37 @@ def _merge_defaults(default: Any, value: Any) -> Any:
         for k, v in value.items():
             merged[k] = _merge_defaults(default.get(k), v) if k in default else v
         return merged
+    if (isinstance(default, list) and isinstance(value, list) and default
+            and all(isinstance(d, dict) and "id" in d for d in default)
+            and all(isinstance(v, dict) and "id" in v for v in value)):
+        # Lists of identified items (home-page sections): fill new keys per item and
+        # append items added in a later release, keeping the admin's order.
+        by_id = {d["id"]: d for d in default}
+        merged_list = [_merge_defaults(by_id[v["id"]], v) if v["id"] in by_id else copy.deepcopy(v) for v in value]
+        have = {v["id"] for v in value}
+        # New items go in at their default position (after their default predecessor).
+        for i, d in enumerate(default):
+            if d["id"] in have:
+                continue
+            prev = next((default[j]["id"] for j in range(i - 1, -1, -1)
+                         if any(x["id"] == default[j]["id"] for x in merged_list)), None)
+            at = next((k + 1 for k, x in enumerate(merged_list) if x["id"] == prev), 0) if prev else 0
+            merged_list.insert(at, copy.deepcopy(d))
+            have.add(d["id"])
+        if [v["id"] for v in value] in _PREVIOUS_SECTION_ORDERS:
+            # Never reordered by an admin: follow the current default order.
+            order = {d["id"]: i for i, d in enumerate(default)}
+            merged_list.sort(key=lambda x: order.get(x["id"], len(order)))
+        return merged_list
     return copy.deepcopy(value if value is not None else default)
+
+
+# Section orders shipped in earlier releases. A stored list still in one of these orders was
+# never rearranged by an admin, so it follows the current default order.
+_PREVIOUS_SECTION_ORDERS = [
+    ["hero", "stats", "brands", "showcase", "offers", "services", "testimonials", "lifestyle", "faq"],
+    ["hero", "stats", "brands", "showcase", "services", "testimonials", "lifestyle", "offers", "faq"],
+]
 
 
 def ensure_default_settings(db: Session):

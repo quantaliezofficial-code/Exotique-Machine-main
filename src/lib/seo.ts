@@ -27,7 +27,9 @@ export function usePageMeta(meta: PageMeta | null, suffix = ' | Exotique Machine
   const key = meta ? `${meta.title}|${meta.description}|${meta.path}|${meta.noindex}` : '';
   useEffect(() => {
     if (!meta) return;
-    const title = meta.title.includes('Exotique Machines') ? meta.title : meta.title + suffix;
+    // Same rule as backend/seo/render.py _title: add the brand only when it fits (~65 chars).
+    const title = meta.title.includes('Exotique Machines') ? meta.title
+      : [suffix, ' | Exotique Machines'].map((x) => meta.title + x).find((t) => t.length <= 65) || meta.title;
     document.title = title;
     const mk = (tag: string, attrs: Record<string, string>) => () => {
       const el = document.createElement(tag);

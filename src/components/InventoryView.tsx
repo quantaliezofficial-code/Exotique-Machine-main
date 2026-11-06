@@ -10,6 +10,10 @@ import { BUDGETS, FUELS, TRANSMISSIONS } from '../constants';
 import { PageHeader, EmptyState } from './ui';
 import VehicleCard, { VehicleCardSkeleton } from './ui/VehicleCard';
 import Dialog from './ui/Dialog';
+import ListingSummary from './ListingSummary';
+import { api } from '../services/api';
+import { readInitialData } from '../content';
+import type { ListingInfo } from '../types';
 
 const SORTS = {
   newest: { label: 'Newest listings', fn: (a: Vehicle, b: Vehicle) => (b.createdAt || '').localeCompare(a.createdAt || '') },
@@ -62,11 +66,34 @@ function toQuery(f: Filters, brandFromPath?: string): string {
   return s ? `?${s}` : '';
 }
 
-export default function InventoryView({ brandSlug: brandFromPath }: { brandSlug?: string }) {
+export default function InventoryView({ brandSlug: brandFromPath, collection }: { brandSlug?: string; collection?: string }) {
   const { vehicles, vehiclesLoaded, vehiclesError, refreshVehicles } = useSite();
   const { search, path, navigate } = useRouter();
   const { favorites, toggleFavorite } = useGarage();
-  const filters = useMemo(() => readFilters(search, brandFromPath), [search, brandFromPath]);
+  // Answer-first summary + facts for this listing (same text as the server-rendered page).
+  const [info, setInfo] = useState<ListingInfo | null | undefined>(() => {
+    // First page load: the server already embedded this listing's data.
+    const first = readInitialData()?.listing as ListingInfo | undefined;
+    const want = collection ? `/used-cars/${collection}` : brandFromPath ? `/brands/${brandFromPath}` : '/cars';
+    return first && first.path === want ? first : undefined;
+  });
+  const isFiltered = !brandFromPath && !collection && search.toString().length > 0;
+  useEffect(() => {
+    let live = true;
+    api.getListing({ brand: brandFromPath, collection }).then((d) => live && setInfo(d)).catch(() => live && setInfo(null));
+    return () => { live = false; };
+  }, [brandFromPath, collection]);
+  const preset = collection ? info?.preset || null : null;
+  const filters = useMemo(() => {
+    const f = readFilters(search, brandFromPath);
+    if (preset) {
+      if (preset.types && !f.types.length) f.types = preset.types;
+      if (preset.fuels && !f.fuels.length) f.fuels = preset.fuels;
+      if (preset.transmission && !f.transmission) f.transmission = preset.transmission;
+      if (preset.budget && !f.budget) f.budget = preset.budget;
+    }
+    return f;
+  }, [search, brandFromPath, preset]);
   const [query, setQuery] = useState(filters.q);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [shown, setShown] = useState(PAGE);
@@ -75,8 +102,8 @@ export default function InventoryView({ brandSlug: brandFromPath }: { brandSlug?
 
   const update = (patch: Partial<Filters>) => {
     const next = { ...filters, ...patch };
-    // Picking brands on a brand page moves to /cars with the brand filter.
-    if (brandFromPath && patch.brands) {
+    // Changing filters on a collection page, or brands on a brand page, moves to /cars.
+    if (collection || (brandFromPath && patch.brands)) {
       navigate(`/cars${toQuery(next)}`, { keepScroll: true });
       return;
     }
@@ -119,12 +146,15 @@ export default function InventoryView({ brandSlug: brandFromPath }: { brandSlug?
 
   const brandName = brandFromPath ? brandOptions.find((b) => b.slug === brandFromPath)?.name
     || vehicles.find((v) => brandSlug(v.brand) === brandFromPath)?.brand : undefined;
-  const title = brandName ? `Used ${brandName} cars for sale in Lucknow` : 'Pre-owned luxury cars for sale in Lucknow';
-  usePageMeta({
-    title: brandName ? `Used ${brandName} Cars for Sale in Lucknow` : 'Pre-Owned Luxury Cars for Sale in Lucknow',
-    description: `Browse ${results.length} certified pre-owned ${brandName || 'luxury'} cars at Exotique Machines, Lucknow. Finance, trade-in and test drives available.`,
-    path: brandFromPath ? `/brands/${brandFromPath}` : '/cars',
-    noindex: !brandFromPath && search.toString().length > 0,
+  const title = collection ? (info?.title || 'Used cars for sale')
+    : brandName ? `Used ${brandName} Cars for Sale in Lucknow` : 'Pre-Owned Luxury Cars for Sale in Lucknow';
+  const listingPath = collection ? `/used-cars/${collection}` : brandFromPath ? `/brands/${brandFromPath}` : '/cars';
+  usePageMeta(collection && !info ? null : {
+    title,
+    description: info?.summary?.slice(0, 158)
+      || `Browse ${results.length} certified pre-owned ${brandName || 'luxury'} cars at Exotique Machines, Lucknow. Finance, trade-in and test drives available.`,
+    path: listingPath,
+    noindex: isFiltered || (collection ? info?.indexable === false : false),
   });
 
   const activeChips: { label: string; clear: () => void }[] = [
@@ -135,7 +165,7 @@ export default function InventoryView({ brandSlug: brandFromPath }: { brandSlug?
     ...(filters.budget ? [{ label: BUDGETS[filters.budget].label, clear: () => update({ budget: 0 }) }] : []),
     ...(filters.q ? [{ label: `“${filters.q}”`, clear: () => { setQuery(''); update({ q: '' }); } }] : []),
   ];
-  const clearAll = () => { setQuery(''); navigate(brandFromPath ? `/brands/${brandFromPath}` : '/cars', { replace: true, keepScroll: true }); };
+  const clearAll = () => { setQuery(''); navigate(brandFromPath ? `/brands/${brandFromPath}` : '/cars', { replace: !collection, keepScroll: true }); };
   const toggleCompare = (id: string) => setCompare((c) => (c.includes(id) ? c.filter((x) => x !== id) : c.length < 3 ? [...c, id] : c));
   const compared = compare.map((id) => vehicles.find((v) => v.id === id)).filter(Boolean) as Vehicle[];
 
@@ -152,11 +182,13 @@ export default function InventoryView({ brandSlug: brandFromPath }: { brandSlug?
   return (
     <div id="inventory-view">
       <PageHeader
-        eyebrow={brandName ? brandName : 'Inventory'}
+        eyebrow={collection ? 'Used cars' : brandName ? brandName : 'Inventory'}
         title={title}
-        crumbs={[{ label: 'Home', to: '/' }, { label: 'All cars', to: brandFromPath ? '/cars' : undefined }, ...(brandName ? [{ label: brandName }] : [])]}
+        crumbs={[{ label: 'Home', to: '/' }, { label: 'All cars', to: brandFromPath || collection ? '/cars' : undefined },
+          ...(brandName ? [{ label: brandName }] : collection && info ? [{ label: info.title.replace(/ in [A-Z][a-z]+$/, '') }] : [])]}
         lead={vehiclesLoaded ? `${results.length} car${results.length === 1 ? '' : 's'} match${results.length === 1 ? 'es' : ''} your search.` : 'Loading the showroom…'}
       />
+      {info && !isFiltered && <ListingSummary info={info} current={listingPath} />}
 
       <div className="page-container py-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

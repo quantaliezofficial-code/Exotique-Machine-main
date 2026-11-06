@@ -1,3 +1,4 @@
+import json
 from backend.cms.images import generate_all_variants, variant_file, AVIF_AVAILABLE, VARIANT_WIDTHS
 from backend.config import settings
 from backend.tests.conftest import XHR, login, make_admin, png_bytes, OWNER
@@ -210,3 +211,131 @@ def test_variants_never_upscale(owner):
     assert path.status_code == 200
     import io
     assert Image.open(io.BytesIO(path.content)).width <= 700
+
+
+def test_homepage_services_and_collections_validation(owner):
+    hp = owner.get("/api/admin/site-settings").json()["draft"]["homepage"]
+    assert hp["services"]["items"] and hp["collections"], "restored home sections have defaults"
+    good = {**hp, "collections": [{"label": "SUVs", "image": "/uploads/x.jpg", "link": "/cars?type=SUV"}]}
+    assert owner.put("/api/admin/site-settings/homepage", json=good, headers=XHR).status_code == 200
+    bad = {**hp, "collections": [{"label": "x", "image": "/uploads/x.jpg", "link": "javascript:alert(1)"}]}
+    assert owner.put("/api/admin/site-settings/homepage", json=bad, headers=XHR).status_code == 400
+    bad = {**hp, "services": {**hp["services"], "items": [{"title": "", "desc": "", "image": "", "link": "/service"}]}}
+    assert owner.put("/api/admin/site-settings/homepage", json=bad, headers=XHR).status_code == 400
+    bad = {**hp, "services": {**hp["services"], "ctaUrl": "javascript:void(0)"}}
+    assert owner.put("/api/admin/site-settings/homepage", json=bad, headers=XHR).status_code == 400
+    many = {**hp, "collections": [{"label": f"r{i}", "image": "", "link": "/cars"} for i in range(13)]}
+    assert owner.put("/api/admin/site-settings/homepage", json=many, headers=XHR).status_code == 400
+
+
+def test_previous_site_reviews_imported_as_pending(owner):
+    reviews = owner.get("/api/admin/reviews?status=pending").json()["reviews"]
+    legacy = [r for r in reviews if r["source"] == "previous-site"]
+    assert len(legacy) == 3
+    public = owner.get("/api/public/reviews").json()["reviews"]
+    assert not any(r.get("source") == "previous-site" for r in public), "not public until approved"
+
+
+def test_approved_reviews_reorder(owner):
+    pending = owner.get("/api/admin/reviews?status=pending").json()["reviews"]
+    ids = [r["id"] for r in pending if r["source"] == "previous-site"][:2]
+    for rid in ids:
+        assert owner.patch(f"/api/admin/reviews/{rid}/moderate", json={"status": "approved"}, headers=XHR).status_code == 200
+    assert owner.post("/api/admin/reviews/reorder", json={"ids": list(reversed(ids))}, headers=XHR).status_code == 200
+    approved = [r["id"] for r in owner.get("/api/admin/reviews?status=approved").json()["reviews"] if r["id"] in ids]
+    assert approved == list(reversed(ids))
+    public = [r["id"] for r in owner.get("/api/public/reviews").json()["reviews"] if r["id"] in ids]
+    assert public == list(reversed(ids))
+
+
+def test_high_resolution_variant(owner):
+    from PIL import Image
+    import io
+    assert 2560 in VARIANT_WIDTHS
+    img = _upload(owner, folder="general", width=3000)
+    r = owner.get(f"/media/w2560/{img['filename']}")
+    assert r.status_code == 200 and Image.open(io.BytesIO(r.content)).width == 2560
+
+
+def test_stored_sections_get_new_copy_fields():
+    from backend.cms.service import _merge_defaults
+    from backend.cms.defaults import DEFAULT_SETTINGS
+    default = DEFAULT_SETTINGS["homepage"]
+    old = {"sections": [{"id": i, "enabled": True} for i in
+                        ["hero", "stats", "brands", "showcase", "offers", "services", "testimonials", "lifestyle", "faq"]]}
+    old["sections"][3]["title"] = "My own title"
+    m = _merge_defaults(default, old)
+    ids = [x["id"] for x in m["sections"]]
+    assert ids == [x["id"] for x in default["sections"]]
+    show = next(x for x in m["sections"] if x["id"] == "showcase")
+    assert show["title"] == "My own title" and show.get("eyebrow")
+    custom = {"sections": [{"id": "faq", "enabled": False}, {"id": "hero", "enabled": True}, {"id": "stats", "enabled": True}]}
+    m = _merge_defaults(default, custom)
+    ids = [x["id"] for x in m["sections"]]
+    assert ids[:2] == ["faq", "hero"] and len(ids) == len(default["sections"])
+    assert ids.index("velocity") == ids.index("stats") + 1, "new sections land at their default spot"
+    assert m["sections"][0]["enabled"] is False
+
+
+def test_velocity_and_why_us_validation(owner):
+    hp = owner.get("/api/admin/site-settings").json()["draft"]["homepage"]
+    assert hp["velocity"]["lines"] and len(hp["whyUs"]) == 3
+    ok = {**hp, "whyUs": [{"title": "Inspected", "text": "x", "image": ""}], "velocity": {"lines": ["A", "B"], "brandLine": False}}
+    assert owner.put("/api/admin/site-settings/homepage", json=ok, headers=XHR).status_code == 200
+    assert owner.put("/api/admin/site-settings/homepage", json={**hp, "velocity": {"lines": ["x" * 121]}}, headers=XHR).status_code == 400
+    assert owner.put("/api/admin/site-settings/homepage", json={**hp, "whyUs": [{"title": "", "text": ""}]}, headers=XHR).status_code == 400
+    bad_img = {**hp, "whyUs": [{"title": "t", "text": "", "image": "javascript:alert(1)"}]}
+    assert owner.put("/api/admin/site-settings/homepage", json=bad_img, headers=XHR).status_code == 400
+
+
+# ------------------------------------------------------------------ crop on upload
+
+
+def test_crop_on_upload_keeps_original(owner):
+    import io
+    from PIL import Image
+    from backend.config import settings
+    from backend.tests.conftest import png_bytes
+    data = png_bytes(width=2000, height=1000)
+    crop = {"x": 0.25, "y": 0.1, "w": 0.5, "h": 0.8, "rotate": 0}
+    r = owner.post("/api/admin/media/upload", files={"files": ("car.png", data, "image/png")},
+                   data={"folder": "general", "crops": json.dumps([crop])}, headers=XHR)
+    assert r.status_code == 201, r.text
+    m = r.json()["media"][0]
+    assert (m["width"], m["height"]) == (1000, 800)
+    # The original is preserved byte-for-byte at full size
+    original = settings.originals_dir / m["filename"]
+    assert original.read_bytes() == data and Image.open(io.BytesIO(data)).size == (2000, 1000)
+    # Same file uncropped is a different picture, not a duplicate of the crop
+    r = owner.post("/api/admin/media/upload", files={"files": ("car.png", data, "image/png")},
+                   data={"folder": "general"}, headers=XHR)
+    m2 = r.json()["media"][0]
+    assert not m2.get("duplicate") and (m2["width"], m2["height"]) == (2000, 1000)
+
+
+def test_crop_with_rotation_and_validation(owner):
+    from backend.tests.conftest import png_bytes
+    data = png_bytes(width=1600, height=900)
+    # Quarter turn: the upright picture is 900 x 1600; take the top half
+    crop = {"x": 0, "y": 0, "w": 1, "h": 0.5, "rotate": 90}
+    r = owner.post("/api/admin/media/upload", files={"files": ("p.png", data, "image/png")},
+                   data={"folder": "general", "crops": json.dumps([crop])}, headers=XHR)
+    m = r.json()["media"][0]
+    assert (m["width"], m["height"]) == (900, 800)
+    for bad in ({"x": 0.9, "y": 0, "w": 0.5, "h": 0.5}, {"x": 0, "y": 0, "w": 0.5, "h": 0.5, "rotate": 45}, "nonsense"):
+        r = owner.post("/api/admin/media/upload", files={"files": ("p.png", png_bytes(), "image/png")},
+                       data={"folder": "general", "crops": json.dumps([bad])}, headers=XHR)
+        assert r.status_code == 400, bad
+
+
+def test_vehicle_photos_with_crops(owner):
+    from backend.tests.conftest import png_bytes
+    crops = [None, {"x": 0, "y": 0, "w": 0.5, "h": 0.5, "rotate": 0}]
+    r = owner.post("/api/upload", files=[("photos", ("a.png", png_bytes(1600, 1000), "image/png")),
+                                         ("photos", ("b.png", png_bytes(1600, 1000), "image/png"))],
+                   data={"photoCrops": json.dumps(crops)}, headers=XHR)
+    assert r.status_code == 200, r.text
+    urls = r.json()["urls"]
+    media = {m["url"]: m for m in owner.get("/api/admin/media?folder=vehicles").json()["media"]}
+    assert (media[urls[0]]["width"], media[urls[0]]["height"]) == (1600, 1000)
+    assert (media[urls[1]]["width"], media[urls[1]]["height"]) == (800, 500)

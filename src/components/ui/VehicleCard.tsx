@@ -6,6 +6,7 @@ import { carPath } from '../../lib/routes';
 import { formatPrice, vehicleName } from '../../content';
 import { preloadImage } from '../../lib/images';
 import Picture from './Picture';
+import CardGlare from './CardGlare';
 
 interface Props {
   vehicle: Vehicle;
@@ -27,15 +28,16 @@ export default function VehicleCard({ vehicle: v, isFavorite, onToggleFavorite, 
   const img = v.cardImage || v.images?.[0];
   const km = v.kmDriven ? `${Math.round(v.kmDriven / 1000)}k km` : null;
   return (
+    <CardGlare>
     <article className="card group relative flex flex-col overflow-hidden transition-shadow hover:shadow-lg hover:shadow-stone-900/5">
-      <div className="relative aspect-[16/10] bg-stone-200">
+      <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden bg-stone-200">
         <Picture
           src={img}
           alt={`${name} ${v.badge || ''}`.trim()}
           sizes={sizes || '(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw'}
           priority={priority}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          wrapperClassName="h-full w-full"
+          wrapperClassName="absolute inset-0 h-full w-full"
           width={640}
           height={400}
         />
@@ -57,7 +59,8 @@ export default function VehicleCard({ vehicle: v, isFavorite, onToggleFavorite, 
       </div>
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <p className="text-[11px] font-mono font-semibold uppercase tracking-widest text-stone-500">{v.brand}</p>
-        <h3 className="mt-0.5 text-base font-bold leading-snug text-stone-900">
+        <div className="sm:min-h-[3.875rem]">
+        <h3 className="mt-0.5 line-clamp-2 text-base font-bold leading-snug text-stone-900" title={name}>
           <Link
             to={carPath(v.id)}
             onMouseEnter={() => preloadImage(v.images?.[0], 1280)}
@@ -67,18 +70,19 @@ export default function VehicleCard({ vehicle: v, isFavorite, onToggleFavorite, 
             {name}
           </Link>
         </h3>
-        {v.badge && v.badge !== v.model && <p className="text-xs text-stone-600 truncate">{v.badge}</p>}
-        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-600">
-          <li className="flex items-center gap-1"><Fuel className="h-3.5 w-3.5" aria-hidden />{v.fuel}</li>
-          <li className="flex items-center gap-1"><Gauge className="h-3.5 w-3.5" aria-hidden />{km || v.transmission}</li>
-          {v.seats ? <li className="flex items-center gap-1"><Users className="h-3.5 w-3.5" aria-hidden />{v.seats} seats</li> : null}
+        {v.badge && v.badge !== v.model && <p className="truncate text-xs leading-4 text-stone-600">{v.year ? v.badge.replace(` (${v.year})`, '') : v.badge}</p>}
+        </div>
+        <ul className="mt-3 flex h-5 flex-nowrap gap-x-4 overflow-hidden text-xs text-stone-600">
+          <li className="flex shrink-0 items-center gap-1 whitespace-nowrap"><Fuel className="h-3.5 w-3.5" aria-hidden />{v.fuel}</li>
+          <li className="flex shrink-0 items-center gap-1 whitespace-nowrap"><Gauge className="h-3.5 w-3.5" aria-hidden />{km || v.transmission}</li>
+          {v.seats ? <li className="flex shrink-0 items-center gap-1 whitespace-nowrap"><Users className="h-3.5 w-3.5" aria-hidden />{v.seats} seats</li> : null}
         </ul>
         <div className="mt-auto flex items-end justify-between gap-3 pt-4">
           <div>
             <p className="text-lg font-black text-stone-900">{formatPrice(v.price)}</p>
-            {v.emi > 0 && v.status !== 'sold' && (
-              <p className="text-[11px] text-stone-500">EMI from ₹{v.emi.toLocaleString('en-IN')}/mo*</p>
-            )}
+            <p className="min-h-4 text-[11px] leading-4 text-stone-500">
+              {v.emi > 0 && v.status !== 'sold' ? `EMI from ₹${v.emi.toLocaleString('en-IN')}/mo*` : '\u00a0'}
+            </p>
           </div>
           {compare && (
             <label className="relative z-10 flex min-h-11 cursor-pointer items-center gap-2 text-xs font-semibold text-stone-700">
@@ -95,6 +99,7 @@ export default function VehicleCard({ vehicle: v, isFavorite, onToggleFavorite, 
         </div>
       </div>
     </article>
+    </CardGlare>
   );
 }
 

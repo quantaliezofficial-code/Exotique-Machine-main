@@ -7,10 +7,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFi
 from sqlalchemy import or_, desc
 from sqlalchemy.orm import Session
 
-from backend.cms.images import store_image, delete_image_files
+from backend.cms.images import store_image, delete_image_files, parse_crop_list
 from backend.cms.media_registry import register_media, after_commit_generate
 from backend.cms.references import url_is_referenced
 from backend.cms.service import content_cache, invalidate_content
+from backend.cms.public_content import brand_slug
+from backend.seo import indexnow
 from backend.database import get_db
 from backend.models import Vehicle, User, MediaAsset, VEHICLE_STATUSES
 from backend.permissions import has_permission
@@ -23,13 +25,14 @@ MAX_PHOTOS_PER_REQUEST = 20
 SAFE_IMAGE_URL = re.compile(r"^(/uploads/[A-Za-z0-9_.-]+|https://[A-Za-z0-9.-]+/[^\s\"'<>]*)$")
 
 
-def _save_photos(db: Session, photos: List[UploadFile], user: User) -> List[str]:
+def _save_photos(db: Session, photos: List[UploadFile], user: User, crops: Optional[str] = None) -> List[str]:
     files = [f for f in photos or [] if f.filename]
     if len(files) > MAX_PHOTOS_PER_REQUEST:
         raise HTTPException(status_code=400, detail=f"Upload at most {MAX_PHOTOS_PER_REQUEST} photos at a time")
+    crop_list = parse_crop_list(crops, len(files))
     urls = []
-    for file in files:
-        stored = store_image(file)
+    for file, crop in zip(files, crop_list):
+        stored = store_image(file, crop=crop)
         register_media(db, stored, user, "vehicles", original_name=file.filename)
         urls.append(stored.url)
     return urls
@@ -117,6 +120,26 @@ def _public_query(db: Session):
 # ==========================================
 
 
+def _listing_paths(v: Vehicle) -> list:
+    """The car's page plus the listings it appears on (all cars, its brand, its collections)."""
+    from backend.seo.listing import COLLECTIONS, collection_path
+    d = v.to_dict(public=True)
+    return ([f"/cars/{v.id}", "/cars", f"/brands/{brand_slug(v.brand)}"]
+            + [collection_path(c.slug) for c in COLLECTIONS if c.match(d)])
+
+
+def _with_summary(v: Vehicle, db: Session) -> dict:
+    """Public car data plus a one-paragraph, answer-first summary built only from its fields."""
+    from backend.cms.service import public_settings
+    from backend.seo.listing import vehicle_summary
+    d = v.to_dict(public=True)
+    s = content_cache.get_or_set("settings:public", lambda: {"settings": public_settings(db)})["settings"]
+    d["summary"] = vehicle_summary(d, s["contact"].get("city") or "Lucknow",
+                                   s["general"].get("siteName") or "Exotique Machines",
+                                   s["contact"].get("locality") or None)
+    return d
+
+
 @router.get("/vehicles")
 def get_vehicles(
     response: Response,
@@ -139,7 +162,7 @@ def get_vehicles(
             query = query.filter(or_(Vehicle.brand.ilike(q), Vehicle.model.ilike(q),
                                      Vehicle.type.ilike(q), Vehicle.badge.ilike(q)))
         vehicles = query.order_by(desc(Vehicle.created_at)).all()
-        return {"success": True, "count": len(vehicles), "vehicles": [v.to_dict(public=True) for v in vehicles]}
+        return {"success": True, "count": len(vehicles), "vehicles": [_with_summary(v, db) for v in vehicles]}
 
     key = f"vehicles:{category}:{brand}:{fuel}:{(search or '')[:80]}"
     response.headers["Cache-Control"] = "public, max-age=30"
@@ -152,7 +175,7 @@ def get_vehicle(vehicle_id: str, response: Response, db: Session = Depends(get_d
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     response.headers["Cache-Control"] = "public, max-age=30"
-    return {"success": True, "vehicle": vehicle.to_dict(public=True)}
+    return {"success": True, "vehicle": _with_summary(vehicle, db)}
 
 
 # ==========================================
@@ -169,11 +192,12 @@ def admin_list_vehicles(current_user: User = Depends(require_permission("invento
 
 @router.post("/upload")
 def upload_images(photos: List[UploadFile] = File(...),
+                  photoCrops: Optional[str] = Form(None, max_length=20000),
                   current_user: User = Depends(require_permission("cms:media")),
                   db: Session = Depends(get_db)):
     if not photos:
         raise HTTPException(status_code=400, detail="No image files uploaded")
-    urls = _save_photos(db, photos, current_user)
+    urls = _save_photos(db, photos, current_user, photoCrops)
     db.commit()
     after_commit_generate(_filenames(urls))
     return {"success": True, "urls": urls, "count": len(urls)}
@@ -208,6 +232,7 @@ def create_vehicle(
     status_: Optional[str] = Form("available", alias="status"),
     isPublished: Optional[str] = Form("true"),
     photos: List[UploadFile] = File(default=[]),
+    photoCrops: Optional[str] = Form(None, max_length=20000),
     current_user: User = Depends(require_permission("inventory:create")),
     db: Session = Depends(get_db),
 ):
@@ -221,7 +246,7 @@ def create_vehicle(
     this_year = datetime.date.today().year
     year_v = _opt_int(year, 1950, this_year + 1, "Year")
 
-    new_urls = _save_photos(db, photos, current_user)
+    new_urls = _save_photos(db, photos, current_user, photoCrops)
     images_list = new_urls + _parse_url_list(imageUrls)
     if len(images_list) > MAX_IMAGES_PER_VEHICLE:
         raise HTTPException(status_code=400, detail=f"A vehicle can have at most {MAX_IMAGES_PER_VEHICLE} images")
@@ -268,6 +293,8 @@ def create_vehicle(
     db.refresh(v)
     after_commit_generate(_filenames(new_urls))
     invalidate_content()
+    if v.is_published:
+        indexnow.notify(_listing_paths(v))
     log_activity(db, action="VEHICLE_CREATED", actor_id=current_user.id, actor_username=current_user.username,
                  actor_role=current_user.role, target=f"{v.brand} {v.model} ({v.id})",
                  details=f"Price Rs {v.price} Lakhs ({v.category}); published={v.is_published}", ip=get_client_ip(request))
@@ -305,6 +332,7 @@ def update_vehicle(
     status_: Optional[str] = Form(None, alias="status"),
     isPublished: Optional[str] = Form(None),
     photos: List[UploadFile] = File(default=[]),
+    photoCrops: Optional[str] = Form(None, max_length=20000),
     current_user: User = Depends(require_permission("inventory:edit")),
     db: Session = Depends(get_db),
 ):
@@ -348,7 +376,7 @@ def update_vehicle(
     if isPublished is not None:
         vehicle.is_published = bool(_truthy(isPublished))
 
-    new_urls = _save_photos(db, photos, current_user)
+    new_urls = _save_photos(db, photos, current_user, photoCrops)
     if replaceImages == "true":
         # The admin sent the full, ordered list of photos to keep; new uploads go last.
         current_images = _parse_url_list(imageUrls) + new_urls
@@ -375,6 +403,7 @@ def update_vehicle(
     db.refresh(vehicle)
     after_commit_generate(_filenames(new_urls))
     invalidate_content()
+    indexnow.notify(_listing_paths(vehicle))
     log_activity(db, action="VEHICLE_UPDATED", actor_id=current_user.id, actor_username=current_user.username,
                  actor_role=current_user.role, target=f"{vehicle.brand} {vehicle.model} ({vehicle.id})",
                  details=f"Price Rs {vehicle.price} Lakhs; status={vehicle.status}; published={vehicle.is_published}",
@@ -395,6 +424,7 @@ def delete_vehicle(vehicle_id: str, request: Request,
     # Photos are deliberately kept: they stay in the media library (with their preserved
     # originals) and can be removed there once nothing uses them.
     invalidate_content()
+    indexnow.notify([f"/cars/{vehicle_id}", "/cars", f"/brands/{brand_slug(brand_name)}"])
     log_activity(db, action="VEHICLE_DELETED", actor_id=current_user.id, actor_username=current_user.username,
                  actor_role=current_user.role, target=f"{brand_name} {model_name} ({vehicle_id})",
                  details="Vehicle permanently removed.", ip=get_client_ip(request))

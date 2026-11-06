@@ -106,3 +106,23 @@ def get_offer(slug: str, response: Response, preview: Optional[int] = None, db: 
         vehicle = v.to_dict(public=True) if v else None
     # Expired offers stay readable (with a clear "ended" state) but are not promoted.
     return {"offer": offer.to_dict(public=True, effective_status=eff), "vehicle": vehicle}
+
+
+# ------------------------------------------------------------------ listing summaries
+
+
+@router.get("/listing")
+def listing(response: Response, brand: Optional[str] = None, collection: Optional[str] = None,
+            db: Session = Depends(get_db)):
+    """Answer-first summary, facts and browse links for /cars, /brands/<slug> and
+    /used-cars/<slug>. The server-rendered snapshot shows the same text (backend/seo/render.py)."""
+    from backend.seo.listing import listing_payload
+
+    def build():
+        return listing_payload(db, public_settings(db), brand=brand, collection=collection)
+
+    data = content_cache.get_or_set(f"listing:{brand}:{collection}", build)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    response.headers["Cache-Control"] = "public, max-age=60"
+    return data

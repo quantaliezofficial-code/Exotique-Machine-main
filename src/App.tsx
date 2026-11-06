@@ -80,7 +80,7 @@ function Page() {
   const { route } = useRouter();
   switch (route.page) {
     case 'home': return <HomeView />;
-    case 'inventory': return <InventoryView brandSlug={route.brand} />;
+    case 'inventory': return <InventoryView key={route.collection || route.brand || 'all'} brandSlug={route.brand} collection={route.collection} />;
     case 'details': return <VehicleDetailsView vehicleId={route.id} />;
     case 'finance': return <FinanceView />;
     case 'tradein': return <TradeInView />;

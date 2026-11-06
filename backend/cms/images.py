@@ -17,6 +17,7 @@ pipeline existed get optimised versions without a migration.
 import base64
 import hashlib
 import io
+import json
 import logging
 import re
 import threading
@@ -24,7 +25,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Callable, Dict, Iterable, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from fastapi import HTTPException, UploadFile
 from PIL import Image, ImageOps, UnidentifiedImageError, features
@@ -35,7 +36,7 @@ logger = logging.getLogger("luxura.images")
 Image.MAX_IMAGE_PIXELS = settings.MAX_IMAGE_PIXELS
 
 ALLOWED_FORMATS = {"JPEG": ("image/jpeg", ".jpg"), "PNG": ("image/png", ".png"), "WEBP": ("image/webp", ".webp")}
-VARIANT_WIDTHS = (320, 640, 960, 1280, 1920)
+VARIANT_WIDTHS = (320, 640, 960, 1280, 1920, 2560)
 PLACEHOLDER_WIDTH = 32
 MASTER_MAX_SIDE = 3840
 FORMATS = {"webp": ("WEBP", "image/webp"), "avif": ("AVIF", "image/avif")}
@@ -45,8 +46,9 @@ SAFE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,200}$")
 
 # Quality per format and size (tuned on the showroom photos: no visible banding on paint
 # or banding in dark interiors at these settings).
-WEBP_QUALITY = {320: 72, 640: 74, 960: 76, 1280: 78, 1920: 80}
-AVIF_QUALITY = {320: 50, 640: 52, 960: 55, 1280: 58, 1920: 60}
+# Tuned for large, sharp photos on retina screens (hero and gallery use 1920/2560).
+WEBP_QUALITY = {320: 78, 640: 80, 960: 82, 1280: 82, 1920: 84, 2560: 84}
+AVIF_QUALITY = {320: 56, 640: 58, 960: 60, 1280: 62, 1920: 64, 2560: 64}
 
 _locks: Dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
@@ -119,13 +121,66 @@ def _atomic_write(path: Path, data: bytes):
     tmp.replace(path)
 
 
-def store_image(file: UploadFile, min_width: int = 0) -> StoredImage:
-    """Validate, preserve, sanitise and store an uploaded image under /uploads/."""
+def parse_crop(raw: Any) -> Optional[Dict[str, float]]:
+    """Validate a crop request from the admin: fractions of the (upright, rotated) image
+    plus a quarter-turn rotation. Returns None for 'no crop'; raises 400 if malformed."""
+    if raw in (None, "", "null"):
+        return None
+    try:
+        c = json.loads(raw) if isinstance(raw, str) else dict(raw)
+        out = {k: float(c[k]) for k in ("x", "y", "w", "h")}
+        out["rotate"] = int(c.get("rotate") or 0) % 360
+    except (ValueError, TypeError, KeyError):
+        raise HTTPException(status_code=400, detail="Invalid crop")
+    if out["rotate"] not in (0, 90, 180, 270):
+        raise HTTPException(status_code=400, detail="Rotation must be a quarter turn")
+    x, y, w, h = out["x"], out["y"], out["w"], out["h"]
+    if not (0 <= x < 1 and 0 <= y < 1 and 0.02 <= w <= 1.0001 and 0.02 <= h <= 1.0001
+            and x + w <= 1.001 and y + h <= 1.001):
+        raise HTTPException(status_code=400, detail="Crop area is outside the photo")
+    if out["rotate"] == 0 and w > 0.999 and h > 0.999:
+        return None  # the whole picture: nothing to do
+    return out
+
+
+def apply_crop(img: Image.Image, crop: Dict[str, float]) -> Image.Image:
+    if crop["rotate"]:
+        # PIL rotates counter-clockwise; the admin's rotation is clockwise.
+        img = img.rotate(-crop["rotate"], expand=True)
+    W, H = img.size
+    box = (round(crop["x"] * W), round(crop["y"] * H),
+           min(W, round((crop["x"] + crop["w"]) * W)), min(H, round((crop["y"] + crop["h"]) * H)))
+    return img.crop(box)
+
+
+def parse_crop_list(raw: Optional[str], n: int) -> List[Optional[Dict[str, float]]]:
+    """A JSON list of crops aligned with the uploaded files (null = keep the whole photo)."""
+    if not raw:
+        return [None] * n
+    try:
+        items = json.loads(raw)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid crop list")
+    if not isinstance(items, list) or len(items) > n:
+        raise HTTPException(status_code=400, detail="Invalid crop list")
+    return [parse_crop(c) for c in items] + [None] * (n - len(items))
+
+
+def store_image(file: UploadFile, min_width: int = 0, crop: Optional[Dict[str, float]] = None) -> StoredImage:
+    """Validate, preserve, sanitise and store an uploaded image under /uploads/.
+
+    `crop` (from parse_crop) is applied to the public master only: the original bytes are
+    always preserved exactly as uploaded, so a crop can be redone from the original."""
     data = read_upload_limited(file)
     img = _decode(data)
     fmt = img.format
     mime, ext = ALLOWED_FORMATS[fmt]
     img = ImageOps.exif_transpose(img)
+    if crop:
+        icc_keep = img.info.get("icc_profile")
+        img = apply_crop(img, crop)
+        if icc_keep:
+            img.info["icc_profile"] = icc_keep
     if min_width and img.width < min_width:
         raise HTTPException(status_code=400, detail=f"Image is too small ({img.width}px wide). Minimum width is {min_width}px.")
 
@@ -155,8 +210,10 @@ def store_image(file: UploadFile, min_width: int = 0) -> StoredImage:
     target = settings.UPLOADS_DIR / filename
     _atomic_write(target, clean)
 
+    # The same file cropped differently is a different picture for de-duplication.
+    digest = hashlib.sha256(data + (json.dumps(crop, sort_keys=True).encode() if crop else b"")).hexdigest()
     stored = StoredImage(f"/uploads/{filename}", filename, mime, master.width, master.height, len(clean),
-                         hashlib.sha256(data).hexdigest(), str(original_path), len(data), _placeholder(master))
+                         digest, str(original_path), len(data), _placeholder(master))
     return stored
 
 
@@ -231,8 +288,9 @@ def ensure_variant(filename: str, width: int, fmt: str = "webp") -> Path:
     return dest
 
 
-def generate_all_variants(filename: str, formats: Iterable[str] = ("webp", "avif")) -> Dict[str, float]:
-    """Decode the master once and write every width/format. Returns timings in ms."""
+def generate_all_variants(filename: str, formats: Iterable[str] = ("webp", "avif"), force: bool = False) -> Dict[str, float]:
+    """Decode the master once and write every width/format. Returns timings in ms.
+    force=True re-encodes existing variants (after a quality change)."""
     src = _safe_source(filename)
     t0 = time.perf_counter()
     base = _open_for(src, max(VARIANT_WIDTHS))
@@ -247,13 +305,13 @@ def generate_all_variants(filename: str, formats: Iterable[str] = ("webp", "avif
                 continue
             dest = variant_file(src, width, fmt)
             with _lock_for(str(dest)):
-                if _fresh(dest, src):
+                if not force and _fresh(dest, src):
                     continue
                 t = time.perf_counter()
                 _encode(im, width, fmt, dest)
                 timings[f"{fmt}-{width}"] = (time.perf_counter() - t) * 1000
     dest = variant_file(src, PLACEHOLDER_WIDTH, "webp")
-    if not _fresh(dest, src):
+    if force or not _fresh(dest, src):
         _encode(_resized(im, PLACEHOLDER_WIDTH), PLACEHOLDER_WIDTH, "webp", dest)
     timings["total"] = (time.perf_counter() - t0) * 1000
     return timings

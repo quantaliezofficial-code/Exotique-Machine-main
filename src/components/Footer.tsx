@@ -18,11 +18,12 @@ export default function Footer() {
   const g = settings?.general;
   const social = Object.entries(settings?.social || {}).filter(([, url]) => url);
   const brands = (home?.brands || []).slice(0, 8);
+  const popular = (home?.collections || []).slice(0, 8);
 
   return (
     <footer className="border-t border-stone-200 bg-stone-50 pt-14 pb-24 text-stone-600 lg:pb-8" id="app-footer">
       <div className="page-container">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-4">
             <Link to="/" className="inline-flex items-center gap-2.5" aria-label="Exotique Machines home">
               <picture>
@@ -64,6 +65,21 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+
+          {popular.length > 0 && (
+            <div>
+              <h2 className="eyebrow mb-4 text-stone-900">Popular searches</h2>
+              <ul className="space-y-2.5 text-sm">
+                {popular.map((c) => (
+                  <li key={c.slug}>
+                    <Link to={c.path} className="hover:text-stone-900 hover:underline underline-offset-2">
+                      {c.title.replace(/ in [A-Z][a-z]+$/, '').replace(/ for sale$/i, '')} <span className="text-stone-500">({c.count})</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div>
             <h2 className="eyebrow mb-4 text-stone-900">Brands in stock</h2>

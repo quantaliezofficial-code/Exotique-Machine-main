@@ -3,6 +3,7 @@ import { Upload, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
 import type { AdminPermission, AdminUser, MediaAsset } from '../../types';
 import { api } from '../../services/api';
 import Dialog from '../ui/Dialog';
+import CropDialog, { type CropSpec } from './CropDialog';
 import Picture from '../ui/Picture';
 
 // ------------------------------------------------------------------ session
@@ -174,11 +175,19 @@ export function MediaPicker({ folder, onPick, onClose }: { folder: string; onPic
   }, [filter]);
   useEffect(() => { load().catch(() => setItems([])); }, [load]);
 
-  const upload = async (files: FileList | null) => {
-    if (!files?.length) return;
+  // A chosen file first opens the (optional) crop step; then it is uploaded.
+  const [pending, setPending] = useState<{ file: File; url: string } | null>(null);
+  const choose = (files: FileList | null) => {
+    const file = files?.[0];
+    if (file) setPending({ file, url: URL.createObjectURL(file) });
+  };
+  const upload = async (file: File, crop: CropSpec | null) => {
+    if (pending) URL.revokeObjectURL(pending.url);
+    setPending(null);
     const fd = new FormData();
-    Array.from(files).forEach((f) => fd.append('files', f));
+    fd.append('files', file);
     fd.append('folder', folder);
+    if (crop) fd.append('crops', JSON.stringify([crop]));
     const r = await run(() => api.admin.upload<{ media: MediaAsset[] }>('media/upload', fd), 'Uploaded');
     if (r?.media?.[0]) onPick(r.media[0]);
   };
@@ -189,13 +198,18 @@ export function MediaPicker({ folder, onPick, onClose }: { folder: string; onPic
         <button type="button" className="btn btn-primary btn-sm" onClick={() => input.current?.click()} disabled={busy}>
           <Upload className="h-4 w-4" aria-hidden />{busy ? 'Uploading…' : 'Upload new'}
         </button>
-        <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => upload(e.target.files)} />
+        <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { choose(e.target.files); e.target.value = ''; }} />
         <select className="field w-auto min-h-9 py-1.5" value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Folder">
           <option value="">All folders</option>
           {['general', 'hero', 'offers', 'reviews', 'vehicles', 'brand'].map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
-        <span className="text-xs text-stone-500">JPEG, PNG or WebP, up to 25 MB. Originals are kept; visitors get optimised versions.</span>
+        <span className="text-xs text-stone-500">JPEG, PNG or WebP, up to 25 MB. You can crop before uploading. Originals are kept; visitors get optimised versions.</span>
       </div>
+      {pending && (
+        <CropDialog src={pending.url} fileName={pending.file.name} onApply={(c) => upload(pending.file, c)}
+          onSkip={() => upload(pending.file, null)} skipLabel="Upload without cropping"
+          onClose={() => { URL.revokeObjectURL(pending.url); setPending(null); }} />
+      )}
       {items === null ? <p className="py-10 text-center text-sm text-stone-500">Loading…</p> : items.length === 0 ? (
         <p className="py-10 text-center text-sm text-stone-500">No images in this folder yet.</p>
       ) : (

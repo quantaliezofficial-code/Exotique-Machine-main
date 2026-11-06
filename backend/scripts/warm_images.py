@@ -3,6 +3,7 @@
     python -m backend.scripts.warm_images             # report + generate variants
     python -m backend.scripts.warm_images --dry-run   # report only
     python -m backend.scripts.warm_images --sanitize-legacy
+    python -m backend.scripts.warm_images --force      # re-encode after a quality change
 
 * Never modifies or deletes an existing upload by default.
 * Before anything else, each legacy upload is copied byte-for-byte to the private
@@ -68,6 +69,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--sanitize-legacy", action="store_true")
+    ap.add_argument("--force", action="store_true", help="re-encode every variant")
     args = ap.parse_args(argv)
 
     files = sorted(p for p in settings.UPLOADS_DIR.iterdir()
@@ -85,7 +87,7 @@ def main(argv=None):
             if args.sanitize_legacy and gps:
                 sanitize(p)
                 report["sanitized"] += 1
-            report["variants_ms"] += generate_all_variants(p.name)["total"]
+            report["variants_ms"] += generate_all_variants(p.name, force=args.force)["total"]
         except Exception as e:  # keep going; report at the end
             report["errors"].append(f"{p.name}: {e}")
     report["elapsed_s"] = round(time.perf_counter() - t0, 1)

@@ -150,6 +150,19 @@ export function whatsappLink(number: string | undefined, text?: string): string 
   return `https://wa.me/${n}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }
 
+/** '730Ld M Sport' + 'M Sport Executive' -> '730Ld M Sport Executive'. Mirrors clean_name in backend/seo/listing.py. */
+export function cleanName(model: string, badge?: string | null, year?: number | null): string {
+  const m = (model || '').trim();
+  let b = (badge || '').trim();
+  if (year) b = b.replace(new RegExp(`\\s*\\(${year}\\)\\s*$`), '');
+  if (!b || b.toLowerCase() === m.toLowerCase()) return m;
+  const mw = m.split(/\s+/), bw = b.split(/\s+/);
+  for (let k = Math.min(mw.length, bw.length); k > 0; k--) {
+    if (mw.slice(-k).join(' ').toLowerCase() === bw.slice(0, k).join(' ').toLowerCase()) return [...mw, ...bw.slice(k)].join(' ');
+  }
+  return m.toLowerCase().includes(b.toLowerCase()) ? m : `${m} ${b}`;
+}
+
 export function vehicleName(v: Pick<Vehicle, 'brand' | 'model'> & { year?: number | null }): string {
   return [v.year, v.brand, v.model].filter(Boolean).join(' ');
 }

@@ -27,9 +27,14 @@ from backend.cms.public_content import (
     inventory_stats,
 )
 from backend.cms.service import public_settings, offer_effective_status, content_cache
+from backend.cms.images import VARIANT_WIDTHS
 from backend.config import settings
 from backend.models import Offer, Vehicle
 from backend.seo import schema_org as so
+from backend.seo.listing import (
+    BY_SLUG as COLLECTION_BY_SLUG, MIN_INDEXABLE, clean_name, collection_index, collection_path,
+    collection_vehicles, listing_facts, listing_payload, listing_summary, vehicle_summary,
+)
 
 logger = logging.getLogger("luxura.seo")
 
@@ -204,7 +209,9 @@ def _nap_html(s: Dict[str, Any]) -> str:
 
 def _nav_html() -> str:
     links = [("/", "Home"), ("/cars", "All cars"), ("/offers", "Offers"), ("/finance", "Finance"),
-             ("/test-drive", "Test drive"), ("/trade-in", "Trade-in"), ("/service", "Service"), ("/about", "About")]
+             ("/test-drive", "Test drive"), ("/trade-in", "Trade-in"), ("/service", "Service"), ("/about", "About"),
+             ("/used-cars/suv", "Used SUVs"), ("/used-cars/under-20-lakh", "Cars under ₹20 Lakh"),
+             ("/used-cars/automatic", "Automatic cars")]
     return "<nav aria-label=\"Site\"><ul>" + "".join(f'<li><a href="{p}">{t}</a></li>' for p, t in links) + "</ul></nav>"
 
 
@@ -213,8 +220,46 @@ def _wrap(s: Dict[str, Any], inner: str) -> str:
             f"<footer>{_nap_html(s)}</footer></div>")
 
 
+TITLE_MAX = 65  # roughly what Google shows before cutting the title
+
+
 def _title(s: Dict[str, Any], t: str) -> str:
-    return t + (s["seo"].get("titleSuffix") or "")
+    """Append the brand suffix only when it fits and the title does not already name the site.
+    Mirrors usePageMeta in src/lib/seo.ts."""
+    site = s["general"].get("siteName") or settings.SITE_NAME
+    if site.lower() in t.lower():
+        return t
+    for suffix in (s["seo"].get("titleSuffix") or "", f" | {site}"):
+        if suffix and len(t + suffix) <= TITLE_MAX:
+            return t + suffix
+    return t
+
+
+def _dealer_name(s: Dict[str, Any]) -> str:
+    return s["general"].get("siteName") or settings.SITE_NAME
+
+
+def _city(s: Dict[str, Any]) -> str:
+    return s["contact"].get("city") or "Lucknow"
+
+
+def _listing_block(summary: str, facts: Dict[str, Any], browse: List[Tuple[str, str]]) -> str:
+    """Answer-first paragraph, a facts table and browse links (same content the app shows)."""
+    rows = [("Cars in stock", facts.get("count")), ("Price range", facts.get("priceRange")),
+            ("Model years", facts.get("yearRange")),
+            ("Makes", ", ".join(f"{b['name']} ({b['count']})" for b in facts.get("brands") or [])),
+            ("Fuel", ", ".join(f"{f['name']} ({f['count']})" for f in facts.get("fuels") or [])),
+            ("Transmission", ", ".join(f"{t['name']} ({t['count']})" for t in facts.get("transmissions") or [])),
+            ("Last updated", facts.get("updatedAt"))]
+    out = f"<p>{e(summary)}</p><table><caption>At a glance</caption><tbody>" + "".join(
+        f"<tr><th scope=\"row\">{e(k)}</th><td>{e(v)}</td></tr>" for k, v in rows if v not in (None, "", 0)) + "</tbody></table>"
+    if browse:
+        out += "<h2>Browse used cars</h2><ul>" + "".join(f'<li><a href="{e(p)}">{e(t)}</a></li>' for t, p in browse) + "</ul>"
+    return out
+
+
+def _browse_links(vehicles: List[Dict[str, Any]], s: Dict[str, Any], skip: Optional[str] = None) -> List[Tuple[str, str]]:
+    return [(c["title"], c["path"]) for c in collection_index(vehicles, _city(s)) if c["indexable"] and c["slug"] != skip]
 
 
 def _base_graph(s: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -253,18 +298,12 @@ def page_home(db: Session, s: Dict[str, Any]) -> Page:
     if faq_items:
         inner.append("<h2>Frequently asked questions</h2>" + "".join(
             f"<h3>{e(i['question'])}</h3><p>{e(i['answer'])}</p>" for i in faq_items))
-    preloads: List[Dict[str, str]] = []
-    if hero:
-        desktop = hero.get("desktopImage")
-        mobile = hero.get("mobileImage") or desktop
-        preloads = (_preload(mobile, (640, 960, 1280), "100vw", "(max-width: 767px)")
-                    + _preload(desktop, (960, 1280, 1920), "100vw", "(min-width: 768px)"))
-    else:
-        # Same fallback as the SPA: the first featured car with a studio photo.
-        auto = next((v["images"][0] for v in vehicles if (v.get("images") or [""])[0].startswith("/uploads/")), None)
-        if auto:
-            preloads = (_preload(auto, (640, 960, 1280), "100vw", "(max-width: 767px)")
-                        + _preload(auto, (960, 1280, 1920), "100vw", "(min-width: 768px)"))
+    # Mirrors src/components/home/Hero.tsx: the showcase card (the LCP image) uses the
+    # first slide's desktop image with these sizes and every variant width.
+    card_sizes = "(min-width: 1024px) 840px, (min-width: 768px) 680px, (min-width: 640px) 480px, 92vw"
+    first = hero.get("desktopImage") if hero else next(
+        (v["images"][0] for v in vehicles if (v.get("images") or [""])[0].startswith("/uploads/")), None)
+    preloads = _preload(first, VARIANT_WIDTHS, card_sizes)
     return Page(
         title=s["seo"]["homeTitle"], description=_truncate(s["seo"]["homeDescription"]), path="/",
         og_image=s["seo"].get("defaultOgImage"),
@@ -283,11 +322,16 @@ def page_inventory(db: Session, s: Dict[str, Any]) -> Page:
     d = (f"Browse {len(stock)} certified pre-owned luxury cars for sale in {city}: "
          + ", ".join(b["name"] for b in brand_index(rows)[:6])
          + f". {stats['priceRange']}. Finance and trade-in available.")
+    facts = listing_facts(vehicles)
+    summary = listing_summary("used cars", facts, city, _dealer_name(s))
     return Page(
         title=_title(s, t), description=_truncate(d), path="/cars",
         jsonld=_base_graph(s) + [so.breadcrumbs([("Home", "/"), ("All cars", "/cars")]),
+                                 so.webpage("/cars", t, summary, facts.get("updatedAt")),
                                  so.item_list(t, stock, vehicle_path)],
-        body=_wrap(s, f"<h1>{e(t)}</h1><p>{e(d)}</p>" + _car_list_html(vehicles)),
+        body=_wrap(s, f"<h1>{e(t)}</h1>" + _listing_block(summary, facts, _browse_links(vehicles, s))
+                   + "<h2>Cars for sale</h2>" + _car_list_html(vehicles)),
+        initial_data={"listing": listing_payload(db, s)},
     )
 
 
@@ -297,8 +341,9 @@ def page_vehicle(db: Session, s: Dict[str, Any], vehicle_id: str) -> Optional[Pa
         return None
     v = row.to_dict(public=True)
     path = vehicle_path(v)
-    name = vehicle_title(row) + (f" {row.badge}" if row.badge else "")
-    city = s["contact"].get("city") or "Lucknow"
+    name = " ".join(p for p in (str(row.year) if row.year else None, row.brand, clean_name(row.model, row.badge, row.year)) if p)
+    city = _city(s)
+    v["summary"] = vehicle_summary(v, city, _dealer_name(s), s["contact"].get("locality") or None)
     sold = v.get("status") == "sold"
     t = f"Sold: {name}" if sold else f"Used {name} for sale in {city}"
     bits = [x for x in (v.get("fuel"), v.get("transmission"), f"{v['seats']} seats" if v.get("seats") else None,
@@ -309,7 +354,8 @@ def page_vehicle(db: Session, s: Dict[str, Any], vehicle_id: str) -> Optional[Pa
              ("Seats", v.get("seats")), ("Body type", v.get("lifestyle")), ("Year", v.get("year")),
              ("Kilometres", f"{v['kmDriven']:,} km" if v.get("kmDriven") else None), ("Owners", v.get("owners")),
              ("Status", (v.get("status") or "available").capitalize())]
-    inner = (f"<h1>{e(name)}</h1><p>{e(v.get('description'))}</p><h2>Specifications</h2><dl>"
+    inner = (f"<h1>{e(name)}</h1><p>{e(v['summary'])}</p>"
+             + (f"<p>{e(v.get('description'))}</p>" if v.get("description") else "") + "<h2>Specifications</h2><dl>"
              + "".join(f"<dt>{e(k)}</dt><dd>{e(val)}</dd>" for k, val in specs if val not in (None, ""))
              + "</dl>")
     if v.get("features"):
@@ -320,15 +366,20 @@ def page_vehicle(db: Session, s: Dict[str, Any], vehicle_id: str) -> Optional[Pa
     inner += (f'<p><a href="/test-drive?car={e(v["id"])}">Book a test drive</a> · '
               f'<a href="/finance?car={e(v["id"])}">Apply for finance</a> · '
               f'<a href="/brands/{e(brand_slug(v["brand"]))}">More {e(v["brand"])} cars</a></p>')
+    similar = [x.to_dict(public=True) for x in public_vehicles(db)
+               if x.id != row.id and x.status != "sold" and (x.brand == row.brand or x.lifestyle == row.lifestyle)][:6]
+    if similar:
+        inner += "<h2>Similar cars in stock</h2>" + _car_list_html(similar)
     return Page(
         title=_title(s, t), description=_truncate(d), path=path, og_type="product",
         og_image=so.image_variant(first, 1280) if first else None,
         jsonld=_base_graph(s) + [
             so.breadcrumbs([("Home", "/"), ("All cars", "/cars"), (v["brand"], f"/brands/{brand_slug(v['brand'])}"),
                             (name, path)]),
+            so.webpage(path, t, v["summary"], (v.get("updatedAt") or "")[:10] or None, main_entity=path + "#vehicle"),
             so.vehicle(v, path)],
         body=_wrap(s, inner), initial_data={"vehicle": v},
-        preloads=_preload(first, (640, 960, 1280, 1920), "(min-width: 1024px) 60vw, 100vw"),
+        preloads=_preload(first, (640, 960, 1280, 1920, 2560), "(min-width: 1024px) 60vw, 100vw"),
     )
 
 
@@ -344,12 +395,44 @@ def page_brand(db: Session, s: Dict[str, Any], slug: str) -> Optional[Page]:
     d = (f"{len(stock)} certified pre-owned {brand} car{'s' if len(stock) != 1 else ''} for sale at Exotique Machines, "
          f"{city}: " + ", ".join(sorted({v['model'] for v in stock})[:6]) + ". Finance, trade-in and test drives.")
     path = f"/brands/{slug}"
+    facts = listing_facts(vehicles)
+    summary = listing_summary(f"used {brand} cars", facts, city, _dealer_name(s))
+    others = [(f"Used {b['name']} cars", f"/brands/{b['slug']}") for b in brand_index(public_vehicles(db)) if b["slug"] != slug]
     return Page(
         title=_title(s, t), description=_truncate(d), path=path,
         jsonld=_base_graph(s) + [so.breadcrumbs([("Home", "/"), ("All cars", "/cars"), (brand, path)]),
+                                 so.webpage(path, t, summary, facts.get("updatedAt")),
                                  so.item_list(t, stock, vehicle_path)],
-        body=_wrap(s, f"<h1>{e(t)}</h1><p>{e(d)}</p>" + _car_list_html(vehicles)),
+        body=_wrap(s, f"<h1>{e(t)}</h1>" + _listing_block(summary, facts, others)
+                   + f"<h2>{e(brand)} cars for sale</h2>" + _car_list_html(vehicles)),
+        initial_data={"listing": listing_payload(db, s, brand=slug)},
     )
+
+
+def page_collection(db: Session, s: Dict[str, Any], slug: str) -> Optional[Page]:
+    c = COLLECTION_BY_SLUG.get(slug)
+    if not c:
+        return None
+    all_vehicles = [v.to_dict(public=True) for v in public_vehicles(db)]
+    vehicles = collection_vehicles(c, all_vehicles)
+    city = _city(s)
+    t = f"{c.heading} in {city}"
+    facts = listing_facts(vehicles)
+    summary = listing_summary(c.label, facts, city, _dealer_name(s))
+    path = collection_path(slug)
+    page = Page(
+        title=_title(s, t), description=_truncate(summary), path=path,
+        jsonld=_base_graph(s) + [so.breadcrumbs([("Home", "/"), ("All cars", "/cars"), (t, path)]),
+                                 so.webpage(path, t, summary, facts.get("updatedAt")),
+                                 so.item_list(t, vehicles, vehicle_path)],
+        body=_wrap(s, f"<h1>{e(t)}</h1>" + _listing_block(summary, facts, _browse_links(all_vehicles, s, skip=slug))
+                   + "<h2>Cars for sale</h2>" + _car_list_html(vehicles)),
+        initial_data={"listing": listing_payload(db, s, collection=slug)},
+    )
+    if facts["count"] < MIN_INDEXABLE:
+        # Too few cars to be a useful page on its own: keep it for visitors, out of the index.
+        page.robots = "noindex,follow"
+    return page
 
 
 def page_offers(db: Session, s: Dict[str, Any]) -> Page:
@@ -446,6 +529,7 @@ ROUTES: List[Tuple[re.Pattern, Callable]] = [
     (re.compile(r"^/cars$"), lambda db, s, m: page_inventory(db, s)),
     (re.compile(r"^/cars/([A-Za-z0-9_.-]{1,128})$"), lambda db, s, m: page_vehicle(db, s, m.group(1))),
     (re.compile(r"^/brands/([a-z0-9-]{1,120})$"), lambda db, s, m: page_brand(db, s, m.group(1))),
+    (re.compile(r"^/used-cars/([a-z0-9-]{1,60})$"), lambda db, s, m: page_collection(db, s, m.group(1))),
     (re.compile(r"^/offers$"), lambda db, s, m: page_offers(db, s)),
     (re.compile(r"^/offers/([a-z0-9-]{1,160})$"), lambda db, s, m: page_offer(db, s, m.group(1))),
     (re.compile(r"^/(finance|test-drive|trade-in|service)$"), lambda db, s, m: page_static(db, s, m.group(0))),

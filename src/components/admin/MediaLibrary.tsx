@@ -4,6 +4,7 @@ import type { MediaAsset } from '../../types';
 import { api, ApiError } from '../../services/api';
 import Dialog from '../ui/Dialog';
 import Picture from '../ui/Picture';
+import CropDialog, { type CropSpec } from './CropDialog';
 import { PanelHeader, useAction, useToast, formatBytes } from './ui';
 
 const FOLDERS = ['general', 'hero', 'offers', 'reviews', 'vehicles', 'brand'];
@@ -26,11 +27,20 @@ export default function MediaLibrary() {
   }, [folder, q]);
   useEffect(() => { const t = window.setTimeout(load, 200); return () => window.clearTimeout(t); }, [load]);
 
-  const upload = async (files: FileList | null) => {
+  // One photo: offer the optional crop step first. Several: upload straight away.
+  const [pending, setPending] = useState<{ file: File; url: string } | null>(null);
+  const choose = (files: FileList | null) => {
     if (!files?.length) return;
+    if (files.length === 1) setPending({ file: files[0], url: URL.createObjectURL(files[0]) });
+    else upload(Array.from(files));
+  };
+  const closeCrop = () => { if (pending) URL.revokeObjectURL(pending.url); setPending(null); };
+  const upload = async (files: File[], crop: CropSpec | null = null) => {
+    closeCrop();
     const fd = new FormData();
-    Array.from(files).slice(0, 20).forEach((f) => fd.append('files', f));
+    files.slice(0, 20).forEach((f) => fd.append('files', f));
     fd.append('folder', uploadFolder);
+    if (crop) fd.append('crops', JSON.stringify([crop]));
     const r = await run(() => api.admin.upload<{ media: MediaAsset[] }>('media/upload', fd));
     if (r) {
       const dup = r.media.filter((m) => m.duplicate).length;
@@ -50,9 +60,13 @@ export default function MediaLibrary() {
               {FOLDERS.map((f) => <option key={f}>{f}</option>)}
             </select>
             <button className="btn btn-primary" onClick={() => input.current?.click()} disabled={busy}><Upload className="h-4 w-4" aria-hidden />{busy ? 'Uploading…' : 'Upload'}</button>
-            <input ref={input} type="file" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ''; }} />
+            <input ref={input} type="file" multiple accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { choose(e.target.files); e.target.value = ''; }} />
           </div>
         } />
+      {pending && (
+        <CropDialog src={pending.url} fileName={pending.file.name} onApply={(c) => upload([pending.file], c)}
+          onSkip={() => upload([pending.file])} skipLabel="Upload without cropping" onClose={closeCrop} />
+      )}
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <input type="search" className="field sm:max-w-xs" placeholder="Search file name or description" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search media" />
         <div className="flex flex-wrap gap-1">

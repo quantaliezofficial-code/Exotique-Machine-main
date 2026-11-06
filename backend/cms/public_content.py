@@ -110,6 +110,13 @@ def visible_offers(db: Session, preview: bool = False, home_only: bool = False) 
     return out
 
 
+def _collections(settings_: Dict[str, Any], vehicles: List[Vehicle]) -> List[Dict[str, Any]]:
+    from backend.seo.listing import collection_index
+    city = settings_["contact"].get("city") or "Lucknow"
+    return [{"slug": c["slug"], "title": c["title"], "path": c["path"], "count": c["count"]}
+            for c in collection_index([v.to_dict(public=True) for v in vehicles], city) if c["indexable"]]
+
+
 def home_payload(db: Session, preview: bool = False) -> Dict[str, Any]:
     def build():
         settings_ = public_settings(db, draft=preview)
@@ -126,6 +133,8 @@ def home_payload(db: Session, preview: bool = False) -> Dict[str, Any]:
             "offers": visible_offers(db, preview, home_only=True)[:offers_limit],
             "stats": inventory_stats(vehicles),
             "brands": brand_index(vehicles),
+            # Browse-by pages with enough cars to be worth a visit (footer links).
+            "collections": _collections(settings_, vehicles),
             "preview": preview,
         }
 

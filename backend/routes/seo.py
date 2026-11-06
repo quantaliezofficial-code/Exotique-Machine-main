@@ -7,11 +7,14 @@ from fastapi import APIRouter, Depends, Response
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from sqlalchemy.orm import Session
 
-from backend.cms.public_content import public_vehicles, brand_index, vehicle_title, format_price_lakhs, visible_offers
+from backend.cms.public_content import public_vehicles, brand_index, brand_slug, format_price_lakhs, visible_offers
 from backend.cms.service import content_cache, get_settings, public_settings
 from backend.config import settings
 from backend.database import get_db
 from backend.seo import render
+from backend.seo.listing import (
+    BY_SLUG as COLLECTION_BY_SLUG, clean_name, collection_index, collection_vehicles, listing_facts, listing_summary,
+)
 from backend.seo.schema_org import absolute, image_variant
 
 router = APIRouter(tags=["SEO"], include_in_schema=False)
@@ -45,8 +48,14 @@ def sitemap(db: Session = Depends(get_db)):
         add("/", latest)
         for p in STATIC_PATHS:
             add(p, latest if p == "/cars" else None)
+        city = (public_settings(db)["contact"].get("city") or "Lucknow")
+        dicts = [v.to_dict(public=True) for v in vehicles]
         for b in brand_index(vehicles):
-            add(f"/brands/{b['slug']}", latest)
+            rows = [v for v in vehicles if brand_slug(v.brand) == b["slug"]]
+            add(f"/brands/{b['slug']}", max((v.updated_at or v.created_at for v in rows), default=latest))
+        for c in collection_index(dicts, city):
+            if c["indexable"]:  # thin collections stay out of the sitemap (and are noindex)
+                add(c["path"], listing_facts(collection_vehicles(COLLECTION_BY_SLUG[c["slug"]], dicts))["updatedAt"])
         for v in vehicles:
             add(f"/cars/{v.id}", v.updated_at or v.created_at, [i for i in (v.images or []) if i])
         for o in visible_offers(db):
@@ -104,12 +113,23 @@ def llms_txt(db: Session = Depends(get_db)):
             f"- [Service]({absolute('/service')}): service booking",
             f"- [About]({absolute('/about')})",
             "",
-            f"## Cars in stock ({len(vehicles)})",
         ]
+        dicts = [v.to_dict(public=True) for v in vehicles]
+        facts = listing_facts(dicts)
+        out += ["## Key facts",
+                "- " + listing_summary("used cars", facts, c.get("city") or "Lucknow", g.get("siteName") or "Exotique Machines"),
+                f"- Showroom: {c.get('locality') + ', ' if c.get('locality') else ''}{c.get('city')}" if c.get("city") else "",
+                "", "## Browse by brand"]
+        out += [f"- [Used {b['name']} cars]({absolute('/brands/' + b['slug'])}): {b['count']} in stock" for b in brand_index(vehicles)]
+        out += ["", "## Browse by body type, budget and fuel"]
+        out += [f"- [{x['title']}]({absolute(x['path'])}): {x['count']} in stock"
+                for x in collection_index(dicts, c.get("city") or "Lucknow") if x["indexable"]]
+        out += ["", f"## Cars in stock ({len(vehicles)})"]
         for v in vehicles[:200]:
             price = format_price_lakhs(v.price) if v.price else "price on request"
-            out.append(f"- [{vehicle_title(v)} {v.badge or ''}".rstrip() + f"]({absolute('/cars/' + v.id)}): "
-                       f"{v.fuel}, {v.transmission}, {price}")
+            bits = [str(v.year) if v.year else None, f"{v.km_driven:,} km" if v.km_driven else None, v.fuel, v.transmission, price]
+            name = " ".join(p for p in (str(v.year) if v.year else None, v.brand, clean_name(v.model, v.badge, v.year)) if p)
+            out.append(f"- [{name}]({absolute('/cars/' + v.id)}): " + ", ".join(b for b in bits[1:] if b))
         if s.get("faq"):
             out += ["", "## FAQ"] + [f"- **{i['question']}** {i['answer']}" for i in s["faq"]]
         return "\n".join(line for line in out if line is not None) + "\n"
@@ -136,3 +156,15 @@ def _render(path: str, db: Session) -> HTMLResponse:
 def seo_page(path: str, db: Session = Depends(get_db)):
     """Internal: nginx routes HTML page requests here. Blocked from the outside by nginx."""
     return _render("/" + path, db)
+
+
+# Must stay after /robots.txt and /llms.txt so it never shadows them.
+@router.get("/{name}.txt")
+def indexnow_key(name: str):
+    """IndexNow ownership file. Only the configured key is served; everything else is 404."""
+    from fastapi import HTTPException
+    from backend.seo import indexnow
+    k = indexnow.key()
+    if not k or name != k:
+        raise HTTPException(status_code=404, detail="Not found")
+    return PlainTextResponse(k, headers={"Cache-Control": "public, max-age=86400"})

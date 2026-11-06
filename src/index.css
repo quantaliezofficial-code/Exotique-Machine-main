@@ -97,6 +97,20 @@
   .fade-swap { transition: opacity 0.6s ease; }
 }
 
+@keyframes em-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes em-shine {
+  to { background-position: 200% center; }
+}
+
+@keyframes em-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 @keyframes em-fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
@@ -135,3 +149,13 @@
   }
   .em-img { opacity: 1; }
 }
+
+/* React Bits Glare Hover around cards: behave like a plain block, keep the card's own border. */
+.em-glare.glare-hover { display: block; place-items: normal; width: 100%; height: 100%; border: 0; }
+/* (place-items: normal — the React Bits default "center" shrinks the card to its content width in current browsers.) */
+.em-glare.glare-hover > .card { height: 100%; }
+
+/* Home-page rhythm: one generous vertical spacing for every section, so blocks breathe. */
+.em-section { padding-block: clamp(5rem, 10vw, 9rem); }
+.em-section-top { padding-top: clamp(5rem, 10vw, 9rem); }
+.em-band { padding-block: clamp(3rem, 6vw, 5rem); }

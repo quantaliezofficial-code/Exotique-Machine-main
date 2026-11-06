@@ -39,6 +39,8 @@ export interface Vehicle {
   isPublished?: boolean;
   showcaseLabel?: string | null;
   cardImage?: string | null;
+  /** Answer-first paragraph built from the car's own fields (backend/seo/listing.py). */
+  summary?: string;
 }
 
 export type ActivePage =
@@ -185,12 +187,26 @@ export interface ShowcaseItem {
 }
 
 export interface HomeSection {
-  id: 'hero' | 'stats' | 'brands' | 'showcase' | 'offers' | 'services' | 'testimonials' | 'lifestyle' | 'faq';
+  id: 'hero' | 'stats' | 'velocity' | 'brands' | 'showcase' | 'whyus' | 'offers' | 'services' | 'testimonials' | 'lifestyle' | 'faq';
   enabled: boolean;
+  eyebrow?: string;
   title?: string;
+  /** Second line of the title, shown in the accent gradient. */
+  titleAccent?: string;
   subtitle?: string;
   limit?: number;
 }
+
+export interface HomeServices {
+  centerEyebrow: string;
+  centerTitle: string;
+  centerText: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  items: { title: string; desc: string; image: string; link: string }[];
+}
+
+export interface HomeCollection { label: string; image: string; link: string }
 
 export interface SiteSettings {
   general: {
@@ -232,6 +248,10 @@ export interface SiteSettings {
     heading: string;
     sections: HomeSection[];
     stats: { value: string; label: string; auto?: string }[];
+    services: HomeServices;
+    collections: HomeCollection[];
+    velocity: { lines: string[]; brandLine: boolean };
+    whyUs: { title: string; text: string; image: string }[];
   };
   faq: { question: string; answer: string }[];
 }
@@ -244,7 +264,37 @@ export interface HomePayload {
   offers: Offer[];
   stats: { count: number; brands: number; minPrice: number | null; maxPrice: number | null; priceRange: string };
   brands: { slug: string; name: string; count: number }[];
+  collections?: { slug: string; title: string; path: string; count: number }[];
   preview: boolean;
 }
 
 export type LeadKind = 'finance' | 'test-drives' | 'service' | 'enquiries';
+
+export interface ListingFacts {
+  count: number;
+  minPrice: number | null;
+  maxPrice: number | null;
+  priceRange: string | null;
+  yearRange: string | null;
+  brands: { name: string; count: number }[];
+  fuels: { name: string; count: number }[];
+  transmissions: { name: string; count: number }[];
+  models: string[];
+  updatedAt: string | null;
+}
+
+export interface ListingCollection {
+  slug: string; kind: string; label: string; title: string; path: string; count: number; indexable: boolean;
+  preset: { types?: string[]; fuels?: string[]; transmission?: string; budget?: number };
+}
+
+export interface ListingInfo {
+  title: string;
+  path: string;
+  summary: string;
+  facts: ListingFacts;
+  indexable: boolean;
+  preset: ListingCollection['preset'] | null;
+  collections: ListingCollection[];
+  brands: { slug: string; name: string; count: number }[];
+}

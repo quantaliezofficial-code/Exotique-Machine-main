@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Heart, Share2, Phone, MessageCircle, Calenda
 import type { Vehicle } from '../types';
 import { Link } from '../router';
 import { api } from '../services/api';
-import { useSite, useContact, initialVehicle, formatPrice, vehicleName, whatsappLink, formatInr } from '../content';
+import { useSite, useContact, initialVehicle, formatPrice, vehicleName, cleanName, whatsappLink, formatInr } from '../content';
 import { useGarage } from '../garage';
 import { brandPath, carPath } from '../lib/routes';
 import { usePageMeta } from '../lib/seo';
@@ -36,7 +36,7 @@ function Details({ v, all }: { v: Vehicle; all: Vehicle[] }) {
   const contact = useContact();
   const { favorites, toggleFavorite } = useGarage();
   const name = vehicleName(v);
-  const full = `${name} ${v.badge && v.badge !== v.model ? v.badge : ''}`.trim();
+  const full = [v.year, v.brand, cleanName(v.model, v.badge, v.year)].filter(Boolean).join(' ');
   const sold = v.status === 'sold';
   const [copied, setCopied] = useState(false);
   usePageMeta({
@@ -87,10 +87,11 @@ function Details({ v, all }: { v: Vehicle; all: Vehicle[] }) {
           <div className="lg:sticky lg:top-24"><Summary /></div>
         </aside>
         <div className="min-w-0 space-y-8 lg:col-start-1 lg:row-start-2">
-          {v.description && (
+          {(v.summary || v.description) && (
             <section aria-labelledby="about-car">
               <h2 id="about-car" className="text-xl font-bold text-stone-900">About this car</h2>
-              <p className="mt-3 max-w-prose whitespace-pre-line text-sm leading-relaxed text-stone-700">{v.description}</p>
+              {v.summary && <p className="mt-3 max-w-prose text-[15px] font-medium leading-relaxed text-stone-800">{v.summary}</p>}
+              {v.description && <p className="mt-3 max-w-prose whitespace-pre-line text-sm leading-relaxed text-stone-700">{v.description}</p>}
             </section>
           )}
           <section aria-labelledby="specs">
@@ -228,8 +229,8 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
       >
         {isOptimisable(src) ? (
           <picture key={src}>
-            <source type="image/avif" srcSet={srcSet(src, 'avif', [640, 960, 1280, 1920])} sizes="(min-width: 1024px) 60vw, 100vw" />
-            <source type="image/webp" srcSet={srcSet(src, 'webp', [640, 960, 1280, 1920])} sizes="(min-width: 1024px) 60vw, 100vw" />
+            <source type="image/avif" srcSet={srcSet(src, 'avif', [640, 960, 1280, 1920, 2560])} sizes="(min-width: 1024px) 60vw, 100vw" />
+            <source type="image/webp" srcSet={srcSet(src, 'webp', [640, 960, 1280, 1920, 2560])} sizes="(min-width: 1024px) 60vw, 100vw" />
             <img src={variant(src, 1280)} alt={`${alt}, photo ${i + 1} of ${n}`} className="h-full w-full object-cover fade-in"
               onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
               fetchPriority={i === 0 ? 'high' : 'auto'} decoding={i === 0 ? 'sync' : 'async'} width={1280} height={800} />

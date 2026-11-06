@@ -7,11 +7,11 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from backend.cms.defaults import LEGACY_OFFERS
+from backend.cms.defaults import LEGACY_OFFERS, LEGACY_HERO_SLIDES, LEGACY_REVIEWS
 from backend.cms.service import ensure_default_settings, new_id, now_utc
 from backend.config import settings, KNOWN_PUBLIC_SECRETS
 from backend.database import SessionLocal, init_db
-from backend.models import User, Vehicle, Offer, SiteSetting
+from backend.models import User, Vehicle, Offer, SiteSetting, HeroSlide, Review
 from backend.permissions import ALL_PERMISSIONS, clean_permissions
 from backend.security import hash_password, verify_password, log_activity
 from backend.services.listing_facts import extract_facts
@@ -164,20 +164,37 @@ def _seed_vehicles(db: Session):
     logger.info("Seeded %d vehicles from legacy JSON.", len(vehicles_data))
 
 
-def _seed_legacy_offers(db: Session):
+def _seed_legacy_content(db: Session):
+    """One-off import of content that was hard-coded in the previous frontend. Each part
+    runs once (flag in system.seeded), so deleting the imported items later is final."""
     flag = db.query(SiteSetting).filter(SiteSetting.key == "system.seeded").first()
-    done = (flag.published_value or {}) if flag else {}
-    if done.get("legacy_offers"):
-        return
-    if db.query(Offer).count() == 0:
-        start = now_utc()
-        for i, o in enumerate(LEGACY_OFFERS):
-            db.add(Offer(id=new_id("ofr"), sort_order=i, status="draft", show_on_home=True,
-                         starts_at=start, ends_at=start + datetime.timedelta(days=30),
-                         author_id="system", author_name="Imported from previous site", **o))
-    done["legacy_offers"] = True
+    done = dict((flag.published_value or {}) if flag else {})
+    start = now_utc()
+    if not done.get("legacy_offers"):
+        if db.query(Offer).count() == 0:
+            for i, o in enumerate(LEGACY_OFFERS):
+                db.add(Offer(id=new_id("ofr"), sort_order=i, status="draft", show_on_home=True,
+                             starts_at=start, ends_at=start + datetime.timedelta(days=30),
+                             author_id="system", author_name="Imported from previous site", **o))
+        done["legacy_offers"] = True
+    if not done.get("legacy_hero"):
+        if db.query(HeroSlide).count() == 0:
+            existing = {v for (v,) in db.query(Vehicle.id).all()}
+            for i, h in enumerate(LEGACY_HERO_SLIDES):
+                vid = h["vehicle_id"] if h["vehicle_id"] in existing else None
+                data = {k: v for k, v in h.items() if k != "vehicle_id"}
+                db.add(HeroSlide(id=new_id("hero"), sort_order=i, status="published", vehicle_id=vid,
+                                 cta_url=f"/cars/{h['vehicle_id']}" if vid else "/cars",
+                                 updated_by="Imported from previous site", **data))
+        done["legacy_hero"] = True
+    if not done.get("legacy_reviews"):
+        for i, r in enumerate(LEGACY_REVIEWS):
+            if not db.query(Review).filter(Review.customer_name == r["customer_name"], Review.body == r["body"]).first():
+                db.add(Review(id=new_id("rev"), sort_order=i, status="pending", source="previous-site",
+                              review_date=start, moderated_by="Imported from previous site", **r))
+        done["legacy_reviews"] = True
     if flag:
-        flag.published_value = dict(done)
+        flag.published_value = done
     else:
         db.add(SiteSetting(key="system.seeded", published_value=done, draft_value=done, updated_by="system"))
     db.commit()
@@ -195,7 +212,7 @@ def seed_database(db: Session = None):
         remediate_default_passwords(db)
         _seed_vehicles(db)
         ensure_default_settings(db)
-        _seed_legacy_offers(db)
+        _seed_legacy_content(db)
     except Exception as e:
         db.rollback()
         logger.error("Error seeding database: %s", e, exc_info=True)

@@ -98,5 +98,8 @@ cat <<'EOF'
   docker compose exec backend python -m backend.scripts.warm_images --dry-run
   docker compose exec backend python -m backend.scripts.warm_images
   docker compose exec backend python -m backend.scripts.warm_images --sanitize-legacy
+  # Once after this release: re-encode every photo at the new, higher quality and add
+  # the 2560 px size. Originals are untouched; takes a few minutes.
+  docker compose exec backend python -m backend.scripts.warm_images --force
 Roll back: docker compose down (never -v) && git checkout <previous-commit> && docker compose up -d --build
 EOF
