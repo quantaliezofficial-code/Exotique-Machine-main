@@ -339,3 +339,80 @@ def test_vehicle_photos_with_crops(owner):
     media = {m["url"]: m for m in owner.get("/api/admin/media?folder=vehicles").json()["media"]}
     assert (media[urls[0]]["width"], media[urls[0]]["height"]) == (1600, 1000)
     assert (media[urls[1]]["width"], media[urls[1]]["height"]) == (800, 500)
+
+
+# ------------------------------------------------------------------ videos
+
+
+def _tiny_video(tmp_path, seconds=3, w=1080, h=1920, gps=True):
+    import subprocess
+    out = tmp_path / "clip.mov"
+    cmd = ["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", f"testsrc=size={w}x{h}:rate=60:duration={seconds}",
+           "-f", "lavfi", "-i", f"sine=frequency=440:duration={seconds}", "-c:v", "libx264", "-preset", "ultrafast",
+           "-c:a", "aac", "-shortest"]
+    if gps:
+        cmd += ["-metadata", "location=+26.8467+080.9462/"]
+    subprocess.run(cmd + [str(out)], check=True, capture_output=True)
+    return out.read_bytes()
+
+
+def test_video_upload_makes_web_copy_and_poster(owner, tmp_path):
+    import shutil, subprocess
+    if not shutil.which("ffmpeg"):
+        import pytest
+        pytest.skip("ffmpeg not installed")
+    data = _tiny_video(tmp_path)
+    r = owner.post("/api/admin/videos/upload", files={"file": ("reel.mov", data, "video/quicktime")}, headers=XHR)
+    assert r.status_code == 201, r.text
+    v = r.json()["video"]
+    assert v["src"].startswith("/uploads/videos/") and v["src"].endswith(".mp4")
+    assert (v["width"], v["height"]) == (720, 1280) and 2.5 < v["duration"] < 3.5 and v["hasAudio"]
+    assert v["poster"].startswith("/uploads/") and v["originalBytes"] == len(data)
+    web = settings.UPLOADS_DIR / "videos" / v["src"].rsplit("/", 1)[1]
+    probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format_tags:stream=codec_name,r_frame_rate",
+                            "-of", "json", str(web)], capture_output=True, check=True).stdout.decode()
+    assert "h264" in probe and "aac" in probe and "30/1" in probe
+    assert "location" not in probe.lower()  # phone GPS stripped
+    # served with byte ranges (seeking)
+    r = owner.get(v["src"], headers={"Range": "bytes=0-99"})
+    assert r.status_code == 206 and len(r.content) == 100
+    # can be used in settings
+    hp = owner.get("/api/admin/site-settings").json()["draft"]["homepage"]
+    clip = {**v, "name": "A. Kumar", "car": "Toyota Fortuner", "caption": "Smooth delivery"}
+    assert owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": [clip]}, headers=XHR).status_code == 200
+    owner.post("/api/admin/site-settings/publish", json={"keys": ["homepage"]}, headers=XHR)
+    html = owner.get("/__seo/").text
+    assert '"VideoObject"' in html and "A. Kumar on buying a Toyota Fortuner" in html
+    # About page: several videos (intro first), customer stories shown unless switched off
+    g = owner.get("/api/admin/site-settings").json()["draft"]["general"]
+    intro = {**v, "title": "Inside the showroom"}
+    second = {**v, "title": "Delivery day"}
+    assert owner.put("/api/admin/site-settings/general", json={**g, "aboutVideos": [intro, second]}, headers=XHR).status_code == 200
+    owner.post("/api/admin/site-settings/publish", json={"keys": ["general"]}, headers=XHR)
+    html = owner.get("/__seo/about").text
+    assert "Inside the showroom" in html and "Delivery day" in html and "A. Kumar" in html
+    assert owner.put("/api/admin/site-settings/general", json={**g, "aboutVideos": [intro], "aboutStories": False},
+                     headers=XHR).status_code == 200
+    owner.post("/api/admin/site-settings/publish", json={"keys": ["general"]}, headers=XHR)
+    html = owner.get("/__seo/about").text
+    assert "Inside the showroom" in html and "Delivery day" not in html and "A. Kumar" not in html
+    owner.put("/api/admin/site-settings/general", json={**g, "aboutVideos": [], "aboutStories": True}, headers=XHR)
+    owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": []}, headers=XHR)
+    owner.post("/api/admin/site-settings/publish", json={"keys": ["homepage", "general"]}, headers=XHR)
+
+
+def test_video_upload_rejects_non_video_and_bad_settings(owner):
+    r = owner.post("/api/admin/videos/upload", files={"file": ("x.mp4", b"not a video at all", "video/mp4")}, headers=XHR)
+    assert r.status_code == 400
+    r = owner.post("/api/admin/videos/upload", files={"file": ("p.png", png_bytes(), "image/png")}, headers=XHR)
+    assert r.status_code == 400
+    hp = owner.get("/api/admin/site-settings").json()["draft"]["homepage"]
+    for bad in ({"src": "https://evil.example/x.mp4", "poster": ""}, {"src": "/uploads/videos/../../x.mp4", "poster": ""},
+                {"src": "", "poster": ""}):
+        assert owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": [bad]}, headers=XHR).status_code == 400
+    g = owner.get("/api/admin/site-settings").json()["draft"]["general"]
+    assert owner.put("/api/admin/site-settings/general", json={**g, "aboutVideos": [{"src": "javascript:x", "poster": ""}]},
+                     headers=XHR).status_code == 400
+    ok = {"src": "/uploads/videos/a.mp4", "poster": ""}
+    assert owner.put("/api/admin/site-settings/general", json={**g, "aboutVideos": [ok] * 7}, headers=XHR).status_code == 400
+    assert owner.put("/api/admin/site-settings/homepage", json={**hp, "videoStories": [ok] * 13}, headers=XHR).status_code == 400

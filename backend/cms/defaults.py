@@ -24,6 +24,11 @@ DEFAULT_SETTINGS = {
             "Original OEM Spares Only",
         ],
         "announcement": {"enabled": False, "text": "", "link": ""},
+        # About page videos (Admin → Settings → General). The first is the showroom intro
+        # shown beside the text; any others appear as a row underneath.
+        "aboutVideos": [],
+        # Also show the customer video stories (Homepage settings) on the About page.
+        "aboutStories": True,
     },
     "contact": {
         "phones": [
@@ -82,6 +87,8 @@ DEFAULT_SETTINGS = {
              "subtitle": "Elevate your driving lifestyle. From custom interior tailored designs to elite doorstep delivery, we manage your luxury fleet seamlessly."},
             {"id": "testimonials", "enabled": True, "eyebrow": "Testimonials", "title": "What Our Customers Say",
              "subtitle": "Real stories from owners who bought their car at Exotique Machines.", "limit": 12},
+            {"id": "stories", "enabled": True, "eyebrow": "In Their Own Words", "title": "Customer Stories",
+             "subtitle": "Real buyers and real deliveries at our Lucknow showroom. Tap a story to watch with sound."},
             {"id": "lifestyle", "enabled": True, "eyebrow": "Showroom Collections", "title": "Discover by Lifestyle",
              "subtitle": "Hover over each collection to preview. Click any lifestyle category to view matching vehicles in our curated fleet."},
             {"id": "offers", "enabled": True, "eyebrow": "Showroom Exclusive Privileges", "title": "Celebrate with Luxury Privileges",
@@ -125,6 +132,9 @@ DEFAULT_SETTINGS = {
             {"label": "All-Terrain 4x4", "image": "/uploads/1O8A2179_JPG-1792661673910-125869344.jpg", "link": "/cars?type=SUV"},
             {"label": "7-Seater Luxury", "image": "/uploads/1O8A3868_JPG-1792891191327-728378127.jpg", "link": "/cars?type=SUV"},
         ],
+        # Customer video stories (vertical reels). Each: src (/uploads/videos/…mp4), poster,
+        # name, caption, car, transcript, plus duration/size/uploadedAt from the upload.
+        "videoStories": [],
         # Moving text band (React Bits "Scroll Velocity"). Each line scrolls in the opposite
         # direction to the one above; brandLine adds a line of the brands in stock.
         "velocity": {"lines": ["Certified · Inspected · Delivered"], "brandLine": True},

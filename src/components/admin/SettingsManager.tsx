@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import type { SiteSettings, HomeSection } from '../../types';
+import type { SiteSettings, HomeSection, VideoClip } from '../../types';
 import { api } from '../../services/api';
 import { Field } from '../ui';
-import { PanelHeader, MoveButtons, moveItem, useAction, useAdmin, ImageField } from './ui';
+import { PanelHeader, MoveButtons, moveItem, useAction, useAdmin, ImageField, VideoField } from './ui';
 
 type Key = keyof SiteSettings;
 interface Meta { hasUnpublishedChanges: boolean; updatedBy?: string; publishedBy?: string; publishedAt?: string }
@@ -13,7 +13,7 @@ const TABS: { key: Key; label: string }[] = [
   { key: 'social', label: 'Social links' }, { key: 'seo', label: 'SEO' }, { key: 'faq', label: 'FAQ' },
 ];
 const SECTION_LABELS: Record<string, string> = {
-  hero: 'Hero slideshow', stats: 'Stats bar', velocity: 'Moving text band', whyus: 'Why buy from us (stacking cards)', brands: 'Rotating brand grid', showcase: 'Featured cars (card stack)', offers: 'Offer banner',
+  stories: 'Customer video stories', hero: 'Hero slideshow', stats: 'Stats bar', velocity: 'Moving text band', whyus: 'Why buy from us (stacking cards)', brands: 'Rotating brand grid', showcase: 'Featured cars (card stack)', offers: 'Offer banner',
   services: 'Services (zoom parallax)', testimonials: 'Reviews carousel', lifestyle: 'Collections (hover rows)', faq: 'FAQ',
 };
 const DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
@@ -83,6 +83,8 @@ function HomepageForm({ value, onChange }: { value: SiteSettings['homepage']; on
   const setItem = (i: number, p: Partial<SiteSettings['homepage']['services']['items'][number]>) => setSv({ items: sv.items.map((x, j) => (j === i ? { ...x, ...p } : x)) });
   const rows = value.collections || [];
   const vel = value.velocity || { lines: [], brandLine: true };
+  const stories = value.videoStories || [];
+  const setStory = (i: number, p: Partial<VideoClip>) => onChange({ ...value, videoStories: stories.map((x, j) => (j === i ? { ...x, ...p } : x)) });
   const why = value.whyUs || [];
   const setWhy = (i: number, p: Partial<SiteSettings['homepage']['whyUs'][number]>) => onChange({ ...value, whyUs: why.map((x, j) => (j === i ? { ...x, ...p } : x)) });
   const setRow = (i: number, p: Partial<SiteSettings['homepage']['collections'][number]>) => onChange({ ...value, collections: rows.map((x, j) => (j === i ? { ...x, ...p } : x)) });
@@ -188,6 +190,30 @@ function HomepageForm({ value, onChange }: { value: SiteSettings['homepage']; on
       </fieldset>
 
       <fieldset className="rounded-lg border border-stone-200 p-4">
+        <legend className="px-1 text-sm font-semibold">Customer video stories</legend>
+        <p className="field-hint mb-3">Vertical (9:16) customer videos, shown as reels on the home page (and the About page unless switched off there). Add up to 12; use Remove on a story to take it down, and the arrows to change the order. Only publish videos the customer agreed to share. Add a transcript so people who can't play sound (and search engines) can follow.</p>
+        <ul className="space-y-4">
+          {stories.map((c, i) => (
+            <li key={c.src || i} className="grid gap-3 rounded-lg border border-stone-200 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <VideoField label={`Story ${i + 1}`} value={c.src ? c : null} onChange={(v) => v ? setStory(i, v) : onChange({ ...value, videoStories: stories.filter((_, j) => j !== i) })} />
+              <div className="grid content-start gap-2">
+                <div className="flex gap-2">
+                  <input className="field" placeholder="Customer name" value={c.name || ''} maxLength={80} onChange={(e) => setStory(i, { name: e.target.value })} aria-label="Customer name" />
+                  <MoveButtons first={i === 0} last={i === stories.length - 1} onUp={() => onChange({ ...value, videoStories: moveItem(stories, i, -1) })} onDown={() => onChange({ ...value, videoStories: moveItem(stories, i, 1) })} />
+                </div>
+                <input className="field" placeholder="Car they bought, e.g. Mercedes-Benz C-Class" value={c.car || ''} maxLength={120} onChange={(e) => setStory(i, { car: e.target.value })} aria-label="Car" />
+                <input className="field" placeholder="Short caption, e.g. Smooth paperwork and delivery" value={c.caption || ''} maxLength={200} onChange={(e) => setStory(i, { caption: e.target.value })} aria-label="Caption" />
+                <textarea className="field min-h-20" placeholder="Transcript (optional): what they say in the video" value={c.transcript || ''} maxLength={6000} onChange={(e) => setStory(i, { transcript: e.target.value })} aria-label="Transcript" />
+              </div>
+            </li>
+          ))}
+        </ul>
+        {stories.length < 12 && (
+          <div className="mt-3"><VideoField label="Add a story" value={null} onChange={(v) => v && onChange({ ...value, videoStories: [...stories, v] })} /></div>
+        )}
+      </fieldset>
+
+      <fieldset className="rounded-lg border border-stone-200 p-4">
         <legend className="px-1 text-sm font-semibold">Moving text band</legend>
         <p className="field-hint mb-3">Giant text that drifts across the page and speeds up as visitors scroll. One line per row, up to 3; each line moves the opposite way to the one above.</p>
         <Field label="Lines">{(p) => (
@@ -229,6 +255,9 @@ function HomepageForm({ value, onChange }: { value: SiteSettings['homepage']; on
 
 function GeneralForm({ value, onChange }: { value: SiteSettings['general']; onChange: (v: SiteSettings['general']) => void }) {
   const set = (k: keyof SiteSettings['general']) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange({ ...value, [k]: e.target.value });
+  const aboutClips = value.aboutVideos || [];
+  const setAboutClips = (v: VideoClip[]) => onChange({ ...value, aboutVideos: v });
+  const setAboutClip = (i: number, p: Partial<VideoClip>) => setAboutClips(aboutClips.map((x, j) => (j === i ? { ...x, ...p } : x)));
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -239,6 +268,38 @@ function GeneralForm({ value, onChange }: { value: SiteSettings['general']; onCh
       <Field label="Footer text">{(p) => <textarea {...p} className="field min-h-20" value={value.footerBlurb} onChange={set('footerBlurb')} />}</Field>
       <Field label="About page title">{(p) => <input {...p} className="field" value={value.aboutTitle} onChange={set('aboutTitle')} />}</Field>
       <Field label="About page text" hint="Leave an empty line between paragraphs.">{(p) => <textarea {...p} className="field min-h-36" value={value.aboutBody} onChange={set('aboutBody')} />}</Field>
+      <fieldset className="rounded-lg border border-stone-200 p-4">
+        <legend className="px-1 text-sm font-semibold">About page videos</legend>
+        <p className="field-hint mb-3">The first video is the showroom intro, shown beside the About text in a phone frame. Any others appear as a row further down the page. Vertical (9:16) videos look best. Up to 6.</p>
+        <ul className="space-y-4">
+          {aboutClips.map((c, i) => (
+            <li key={c.src || i} className="grid gap-3 rounded-lg border border-stone-200 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <VideoField label={i === 0 ? 'Intro video (shown first)' : `Video ${i + 1}`} value={c.src ? c : null}
+                onChange={(v) => setAboutClips(v ? aboutClips.map((x, j) => (j === i ? v : x)) : aboutClips.filter((_, j) => j !== i))} />
+              <div className="grid content-start gap-2">
+                <div className="flex gap-2">
+                  <input className="field" placeholder="Title (optional), e.g. Inside Exotique Machines" value={c.title || ''} maxLength={120}
+                    onChange={(e) => setAboutClip(i, { title: e.target.value })} aria-label={`Video ${i + 1} title`} />
+                  <MoveButtons first={i === 0} last={i === aboutClips.length - 1}
+                    onUp={() => setAboutClips(moveItem(aboutClips, i, -1))} onDown={() => setAboutClips(moveItem(aboutClips, i, 1))} />
+                </div>
+                <input className="field" placeholder="One-line description (optional)" value={c.description || ''} maxLength={600}
+                  onChange={(e) => setAboutClip(i, { description: e.target.value })} aria-label={`Video ${i + 1} description`} />
+                <textarea className="field min-h-20" placeholder="Transcript (optional): what is said in the video" value={c.transcript || ''} maxLength={6000}
+                  onChange={(e) => setAboutClip(i, { transcript: e.target.value })} aria-label={`Video ${i + 1} transcript`} />
+              </div>
+            </li>
+          ))}
+        </ul>
+        {aboutClips.length < 6 && (
+          <div className="mt-3"><VideoField label={aboutClips.length ? 'Add another video' : 'Add the intro video'} value={null} onChange={(v) => v && setAboutClips([...aboutClips, v])} /></div>
+        )}
+        <label className="mt-4 flex items-center gap-2 text-sm text-stone-800">
+          <input type="checkbox" className="h-4 w-4 accent-stone-900" checked={value.aboutStories !== false}
+            onChange={(e) => onChange({ ...value, aboutStories: e.target.checked })} />
+          Also show the customer video stories on the About page
+        </label>
+      </fieldset>
       <Field label="Assurances" hint="One per line, shown on the About page.">
         {(p) => <textarea {...p} className="field min-h-20" value={value.assurances.join('\n')} onChange={(e) => onChange({ ...value, assurances: e.target.value.split('\n') })}
           onBlur={() => onChange({ ...value, assurances: value.assurances.map((a) => a.trim()).filter(Boolean) })} />}

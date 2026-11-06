@@ -24,6 +24,7 @@ const CardStack = React.lazy(() => import('./home/CardStack').then((m) => ({ def
 const ZoomParallax = React.lazy(() => import('./home/ZoomParallax'));
 const CircularTestimonials = React.lazy(() => import('./home/CircularTestimonials'));
 const FlowingMenu = React.lazy(() => import('./home/FlowingMenu'));
+const VideoStories = React.lazy(() => import('./video/VideoStories'));
 const VelocityBand = React.lazy(() => import('./home/RbSections').then((m) => ({ default: m.VelocityBand })));
 const WhyUs = React.lazy(() => import('./home/RbSections').then((m) => ({ default: m.WhyUs })));
 import { CountUp, Reveal } from './home/motion';
@@ -85,6 +86,18 @@ function renderSection(s: HomeSection, ctx: Ctx) {
       const cards = (ctx.settings.homepage.whyUs || []).filter((c) => c.title?.trim())
         .map((c, i) => ({ ...c, image: c.image || photos[i % Math.max(1, photos.length)] || '' }));
       return <WhyUs section={s} cards={cards} heading={<Heading section={s} fallbackTitle="Why buy from us" id="home-whyus" />} />;
+    }
+    case 'stories': {
+      const clips = (ctx.settings.homepage.videoStories || []).filter((c) => c.src);
+      if (!clips.length) return null;
+      return (
+        <section className="em-section bg-white" aria-labelledby="home-stories" id="customer-stories">
+          <div className="page-container">
+            <Heading section={s} fallbackTitle="Customer stories" id="home-stories" />
+            <VideoStories clips={clips} />
+          </div>
+        </section>
+      );
     }
     case 'brands': return <Brands section={s} ctx={ctx} />;
     case 'showcase': return <Showcase section={s} ctx={ctx} />;

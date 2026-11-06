@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Upload, Image as ImageIcon, ArrowUp, ArrowDown } from 'lucide-react';
-import type { AdminPermission, AdminUser, MediaAsset } from '../../types';
+import { Upload, Image as ImageIcon, ArrowUp, ArrowDown, Film } from 'lucide-react';
+import type { AdminPermission, AdminUser, MediaAsset, VideoClip } from '../../types';
 import { api } from '../../services/api';
 import Dialog from '../ui/Dialog';
 import CropDialog, { type CropSpec } from './CropDialog';
@@ -230,4 +230,57 @@ export function MediaPicker({ folder, onPick, onClose }: { folder: string; onPic
 
 export function PasswordRules() {
   return <p className="field-hint">At least 10 characters, mixing three of: lower case, upper case, numbers, symbols.</p>;
+}
+
+// ------------------------------------------------------------------ video field
+/**
+ * Upload a video (MP4/MOV/WebM). The server keeps the original, makes a 720p web copy
+ * without location data and picks a poster frame; the poster can be swapped for any image.
+ */
+export function VideoField({ label, value, onChange, hint }: {
+  label: string; value: VideoClip | null | undefined; onChange: (v: VideoClip | null) => void; hint?: string;
+}) {
+  const { run, busy } = useAction();
+  const input = useRef<HTMLInputElement>(null);
+  const upload = async (files: FileList | null) => {
+    const file = files?.[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await run(() => api.admin.upload<{ video: VideoClip }>('videos/upload', fd), 'Video ready');
+    if (r?.video) onChange({ ...(value || {}), ...r.video, name: value?.name || '', caption: value?.caption || '', car: value?.car || '', transcript: value?.transcript || '', title: value?.title || '', description: value?.description || '' });
+  };
+  const mins = value?.duration ? `${Math.floor(value.duration / 60)}:${String(Math.round(value.duration % 60)).padStart(2, '0')}` : '';
+  return (
+    <div>
+      <span className="field-label">{label}</span>
+      <div className="flex items-start gap-3">
+        <div className="flex aspect-[9/16] w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-stone-200 bg-stone-900">
+          {value?.poster ? <Picture src={value.poster} alt="" sizes="96px" className="h-full w-full object-cover" wrapperClassName="h-full w-full" />
+            : <Film className="h-6 w-6 text-stone-400" aria-hidden />}
+        </div>
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => input.current?.click()} disabled={busy}>
+              <Upload className="h-4 w-4" aria-hidden />{busy ? 'Uploading and optimising…' : value?.src ? 'Replace video' : 'Upload video'}
+            </button>
+            {value?.src && <a className="btn btn-ghost btn-sm" href={value.src} target="_blank" rel="noopener">Play</a>}
+            {value?.src && <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange(null)}>Remove</button>}
+          </div>
+          <input ref={input} type="file" accept="video/mp4,video/quicktime,video/webm" className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ''; }} />
+          <p className="field-hint">
+            {value?.src ? `${mins}${value.width ? ` · ${value.width}×${value.height}` : ''}. ` : ''}
+            MP4, MOV or WebM up to 300 MB and 5 minutes. It can take up to a minute: we make a fast web copy and keep your original.
+            {hint ? ` ${hint}` : ''}
+          </p>
+        </div>
+      </div>
+      {value?.src && (
+        <div className="mt-3">
+          <ImageField label="Cover image" required value={value.poster} onChange={(u) => onChange({ ...value, poster: u || value.poster })}
+            hint="Taken from the video automatically; choose another picture if you prefer." />
+        </div>
+      )}
+    </div>
+  );
 }

@@ -101,6 +101,36 @@ def webpage(path: str, name: str, description: Optional[str], date_modified: Opt
     })
 
 
+def _iso_duration(seconds: Any) -> Optional[str]:
+    try:
+        total = int(round(float(seconds)))
+    except (TypeError, ValueError):
+        return None
+    if total <= 0:
+        return None
+    return f"PT{total // 60}M{total % 60}S"
+
+
+def video_object(clip: Dict[str, Any], name: str, description: str) -> Optional[Dict[str, Any]]:
+    """VideoObject for an uploaded clip (About intro, customer stories). Needs a poster."""
+    if not clip or not clip.get("src") or not clip.get("poster"):
+        return None
+    return _clean({
+        "@type": "VideoObject",
+        "@id": absolute(clip["src"]) + "#video",
+        "name": name,
+        "description": description,
+        "thumbnailUrl": [absolute(image_variant(clip["poster"], 1280))],
+        "contentUrl": absolute(clip["src"]),
+        "uploadDate": clip.get("uploadedAt") or None,
+        "duration": _iso_duration(clip.get("duration")),
+        "width": clip.get("width") or None,
+        "height": clip.get("height") or None,
+        "transcript": clip.get("transcript") or None,
+        "publisher": {"@id": org_id()},
+    })
+
+
 def breadcrumbs(items: List[tuple]) -> Dict[str, Any]:
     return {
         "@type": "BreadcrumbList",

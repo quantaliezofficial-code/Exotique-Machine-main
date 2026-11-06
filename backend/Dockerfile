@@ -11,6 +11,11 @@ WORKDIR /app
 # volumes once, then drops privileges before starting the app.
 RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin app
 
+# ffmpeg: makes the web copy and poster of uploaded videos (backend/cms/videos.py).
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ffmpeg \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY backend/requirements.txt /app/requirements.txt
 COPY backend/requirements.lock /app/requirements.lock
 RUN pip install -r /app/requirements.txt -c /app/requirements.lock

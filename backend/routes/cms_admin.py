@@ -8,6 +8,7 @@ Permission model
 """
 import copy
 import json
+import logging
 import re
 from typing import Any, Dict, List, Optional
 
@@ -19,6 +20,7 @@ from sqlalchemy.orm import Session
 from backend.cms.defaults import DEFAULT_SETTINGS
 from backend.cms.images import store_image, delete_image_files, schedule_variants, mark_variants_ready, parse_crop_list
 from backend.cms.media_registry import register_media
+from backend.cms.videos import VIDEO_URL_RE, store_poster, store_video
 from backend.cms.references import find_references
 from backend.cms.service import (
     audit, invalidate_content, new_id, now_utc, parse_datetime, slugify, offer_effective_status,
@@ -31,6 +33,8 @@ from backend.models import (
 )
 from backend.permissions import has_permission
 from backend.security import require_permission, require_any_permission, get_current_user
+
+logger = logging.getLogger("luxura.cms")
 
 router = APIRouter(prefix="/api/admin", tags=["Admin CMS"])
 
@@ -59,6 +63,23 @@ def _link(v: Optional[str]) -> Optional[str]:
     if not LINK_RE.match(v):
         raise ValueError("Link must start with /, https://, tel: or mailto:")
     return v
+
+
+def _video_clip(it: Any, required: bool) -> None:
+    """A video entry in settings: an uploaded web video, an image poster and short texts."""
+    if not isinstance(it, dict):
+        raise ValueError("Invalid video entry")
+    src = it.get("src") or ""
+    if not src:
+        if required:
+            raise ValueError("Each customer story needs a video")
+        return
+    if not VIDEO_URL_RE.match(src):
+        raise ValueError("Videos must be uploaded through the admin")
+    _img(it.get("poster"))
+    for k, n in (("name", 80), ("caption", 200), ("car", 120), ("title", 120), ("description", 600), ("transcript", 6000)):
+        if len(str(it.get(k) or "")) > n:
+            raise ValueError(f"Video {k} is limited to {n} characters")
 
 
 class _Payload(BaseModel):
@@ -625,6 +646,29 @@ def list_media(folder: Optional[str] = None, q: Optional[str] = None, with_usage
     return {"media": items}
 
 
+@router.post("/videos/upload", status_code=201)
+def upload_video(file: UploadFile = File(...), user: User = Depends(require_permission("cms:media")),
+                 db: Session = Depends(get_db)):
+    """Upload a video: original kept privately, web copy (720p H.264, metadata stripped)
+    and a poster image are made. Returns a clip to put into a setting (About or stories)."""
+    v = store_video(file)
+    poster_url = None
+    stored = store_poster(v.pop("posterBytes"), v["name"])
+    if stored:
+        m = register_media(db, stored, user, "general", original_name=f"{file.filename} (poster)")
+        db.flush()
+        audit(db, user, "media", m.id, "upload", None, m.to_dict())
+        poster_url = stored.url
+    db.commit()
+    if stored:
+        schedule_variants(stored.filename, on_done=mark_variants_ready)
+    logger.info("video uploaded by %s: %s (%s s, %d bytes)", user.username, v["src"], v["duration"], v["sizeBytes"])
+    return {"video": {"src": v["src"], "poster": poster_url or "", "duration": v["duration"],
+                      "width": v["width"], "height": v["height"], "sizeBytes": v["sizeBytes"],
+                      "originalBytes": v["originalBytes"], "hasAudio": v["hasAudio"],
+                      "uploadedAt": now_utc().isoformat(), "name": "", "caption": "", "car": "", "transcript": ""}}
+
+
 @router.post("/media/upload", status_code=201)
 def upload_media(files: List[UploadFile] = File(...), folder: str = Form("general"), alt: Optional[str] = Form(None),
                  crops: Optional[str] = Form(None, max_length=20000),
@@ -792,6 +836,14 @@ def _validate_setting(key: str, value: Any) -> Any:
                 _img(it.get("image")); _link(it.get("link"))
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
+        stories = value.get("videoStories") or []
+        if not isinstance(stories, list) or len(stories) > 12:
+            raise HTTPException(status_code=400, detail="Customer stories take at most 12 videos")
+        try:
+            for it in stories:
+                _video_clip(it, required=True)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         known = {s["id"] for s in default["sections"]}
         sections = value.get("sections") or []
         if not isinstance(sections, list) or any(not isinstance(s, dict) or s.get("id") not in known for s in sections):
@@ -802,6 +854,17 @@ def _validate_setting(key: str, value: Any) -> Any:
                     s["limit"] = max(1, min(int(s["limit"]), 50))
                 except (TypeError, ValueError):
                     raise HTTPException(status_code=400, detail="Section limit must be a number")
+    if key == "general":
+        value.pop("aboutVideo", None)  # replaced by aboutVideos
+        clips = value.get("aboutVideos") or []
+        if not isinstance(clips, list) or len(clips) > 6:
+            raise HTTPException(status_code=400, detail="The About page takes at most 6 videos")
+        try:
+            for it in clips:
+                _video_clip(it, required=True)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        value["aboutStories"] = value.get("aboutStories") is not False
     if key == "seo" and value.get("defaultOgImage"):
         try:
             _img(value["defaultOgImage"])

@@ -186,8 +186,24 @@ export interface ShowcaseItem {
   vehicle?: Vehicle | null;
 }
 
+/** A web video uploaded through the admin (backend/cms/videos.py). */
+export interface VideoClip {
+  src: string;
+  poster: string;
+  name?: string;
+  caption?: string;
+  car?: string;
+  title?: string;
+  description?: string;
+  transcript?: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  uploadedAt?: string;
+}
+
 export interface HomeSection {
-  id: 'hero' | 'stats' | 'velocity' | 'brands' | 'showcase' | 'whyus' | 'offers' | 'services' | 'testimonials' | 'lifestyle' | 'faq';
+  id: 'hero' | 'stats' | 'velocity' | 'brands' | 'showcase' | 'whyus' | 'offers' | 'services' | 'testimonials' | 'stories' | 'lifestyle' | 'faq';
   enabled: boolean;
   eyebrow?: string;
   title?: string;
@@ -218,6 +234,10 @@ export interface SiteSettings {
     aboutBody: string;
     assurances: string[];
     announcement: { enabled: boolean; text: string; link: string };
+    /** About page videos: the first is the showroom intro beside the text, the rest a row below. */
+    aboutVideos?: VideoClip[];
+    /** Show the customer video stories on the About page too (default true). */
+    aboutStories?: boolean;
   };
   contact: {
     phones: { label: string; number: string }[];
@@ -252,6 +272,7 @@ export interface SiteSettings {
     collections: HomeCollection[];
     velocity: { lines: string[]; brandLine: boolean };
     whyUs: { title: string; text: string; image: string }[];
+    videoStories?: VideoClip[];
   };
   faq: { question: string; answer: string }[];
 }

@@ -294,6 +294,9 @@ def page_home(db: Session, s: Dict[str, Any]) -> Page:
             f"<blockquote><p>{e(r['body'])}</p><cite>{e(r['customerName'])}"
             f"{', ' + e(r['customerTitle']) if r.get('customerTitle') else ''}</cite></blockquote>"
             for r in data["reviews"][:6]))
+    stories = _stories(s)
+    if stories:
+        inner.append(_stories_html(stories))
     faq_items = s.get("faq") or []
     if faq_items:
         inner.append("<h2>Frequently asked questions</h2>" + "".join(
@@ -307,7 +310,8 @@ def page_home(db: Session, s: Dict[str, Any]) -> Page:
     return Page(
         title=s["seo"]["homeTitle"], description=_truncate(s["seo"]["homeDescription"]), path="/",
         og_image=s["seo"].get("defaultOgImage"),
-        jsonld=_base_graph(s) + [so.item_list("Featured cars", vehicles, vehicle_path), so.faq(faq_items)],
+        jsonld=_base_graph(s) + [so.item_list("Featured cars", vehicles, vehicle_path), so.faq(faq_items)]
+        + [_story_video(c, s) for c in stories],
         body=_wrap(s, "".join(inner)), initial_data={"home": data}, preloads=preloads,
     )
 
@@ -504,12 +508,56 @@ def page_about(db: Session, s: Dict[str, Any]) -> Page:
     paragraphs = "".join(f"<p>{e(p)}</p>" for p in (g.get("aboutBody") or "").split("\n\n") if p.strip())
     assurances = "".join(f"<li>{e(a)}</li>" for a in g.get("assurances") or [])
     d = _truncate((g.get("aboutBody") or g.get("tagline") or "").replace("\n", " "))
+    site = _dealer_name(s)
+    clips = [c for c in (g.get("aboutVideos") or []) if c.get("src")]
+    stories = _stories(s) if g.get("aboutStories", True) is not False else []
+
+    def about_title(i: int, c: Dict[str, Any]) -> str:
+        return c.get("title") or (f"Inside {site}, {_city(s)}" if i == 0 else f"{site} showroom video {i + 1}")
+
+    videos = [so.video_object(c, about_title(i, c),
+                              c.get("description") or f"A look around the {site} pre-owned luxury car showroom in {_city(s)}.")
+              for i, c in enumerate(clips)]
+    videos += [_story_video(c, s) for c in stories]
     return Page(
         title=_title(s, t), description=d, path="/about",
-        jsonld=_base_graph(s) + [so.breadcrumbs([("Home", "/"), ("About", "/about")])],
+        jsonld=_base_graph(s) + [so.breadcrumbs([("Home", "/"), ("About", "/about")])] + videos,
         body=_wrap(s, f"<h1>{e(t)}</h1>{paragraphs}" + (f"<ul>{assurances}</ul>" if assurances else "")
+                   + "".join(_video_html(c, about_title(i, c)) for i, c in enumerate(clips))
+                   + _stories_html(stories)
                    + "<h2>Visit the showroom</h2>" + _nap_html(s)),
     )
+
+
+def _stories(s: Dict[str, Any]) -> List[Dict[str, Any]]:
+    return [c for c in (s["homepage"].get("videoStories") or []) if c.get("src")]
+
+
+def _story_title(c: Dict[str, Any], s: Dict[str, Any]) -> str:
+    who = c.get("name") or "A customer"
+    return f"{who} on buying {'a ' + c['car'] if c.get('car') else 'a car'} at {_dealer_name(s)}"
+
+
+def _story_video(c: Dict[str, Any], s: Dict[str, Any]):
+    desc = c.get("caption") or f"Customer story filmed at the {_dealer_name(s)} showroom in {_city(s)}."
+    return so.video_object(c, _story_title(c, s), desc)
+
+
+def _video_html(c: Dict[str, Any], title: str) -> str:
+    poster = so.image_variant(c.get("poster"), 960) if c.get("poster") else ""
+    return (f'<figure><video src="{e(c["src"])}" poster="{e(poster)}" controls preload="none" playsinline></video>'
+            f"<figcaption>{e(title)}</figcaption></figure>")
+
+
+def _stories_html(stories: List[Dict[str, Any]]) -> str:
+    if not stories:
+        return ""
+    items = "".join(
+        f'<li><a href="{e(c["src"])}">{e(c.get("name") or "Customer story")}</a>'
+        + (f" — {e(c['car'])}" if c.get("car") else "") + (f": {e(c['caption'])}" if c.get("caption") else "")
+        + (f"<p>{e(c['transcript'])}</p>" if c.get("transcript") else "") + "</li>"
+        for c in stories)
+    return f"<h2>Customer stories</h2><ul>{items}</ul>"
 
 
 def page_admin(s: Dict[str, Any]) -> Page:
